@@ -1,0 +1,22 @@
+{
+  "id": "pua220",
+  "short_name": "PUA220",
+  "title": "Cyber Security (Notification of Cyber Security Incident) Regulations 2024 [P.U.(A) 220/2024], made under the Cyber Security Act 2024",
+  "source_url": null,
+  "version_date": "2024-08-26",
+  "pdf_path": "data/raw/PUA-220.pdf",
+  "extraction_mode": "layout",
+  "body_pages": [1, 3],
+  "page_offset": 4,
+  "strip_top_patterns": ["^P\\.U\\. \\(A\\) 220$"],
+  "strip_bottom_patterns": ["^\\d+$"],
+  "body_start_after": "makes the following regulations:$",
+  "body_end_before": "^Made ",
+  "unit_label": "Regulation",
+  "id_prefix": "r",
+  "has_parts": false,
+  "definition_units": [],
+  "long_title": null,
+  "schedule": null,
+  "checklist_path": "data/corpus/pua220.toc.json"
+}
