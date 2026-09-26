@@ -15,4 +15,6 @@ def settings() -> Settings:
         database_url="postgresql://test:test@localhost:1/test",
         ollama_base_url="http://ollama.test:11434",
         health_timeout_s=1,
+        top_k_vector=20, top_k_bm25=20, top_k_final=5,
+        llm_call_timeout_s=30, question_budget_s=60,
     )

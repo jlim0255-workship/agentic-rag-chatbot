@@ -34,6 +34,16 @@ class Settings(BaseSettings):
 
     database_url: str
 
+    # Retrieval (PRD 9). No defaults: set in .env (keep TOP_K_FINAL small for 4 GB VRAM).
+    top_k_vector: int = Field(gt=0)
+    top_k_bm25: int = Field(gt=0)
+    top_k_final: int = Field(gt=0)
+
+    # LLM calls. num_ctx is set explicitly so long prompts are never silently truncated.
+    llm_num_ctx: int = Field(default=8192, gt=0)
+    llm_call_timeout_s: float = Field(gt=0)
+    question_budget_s: float = Field(gt=0)
+
     # Agent limits (PRD 10.4)
     rrf_k: int = Field(default=60, gt=0)
     max_retries: int = Field(default=2, ge=0)

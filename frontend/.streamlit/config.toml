@@ -1,0 +1,9 @@
+# Offline rule (PRD 5.1): Streamlit must make no internet calls.
+[browser]
+gatherUsageStats = false
+# Without this, a headless Streamlit calls checkip.amazonaws.com at startup to print an
+# "External URL". With a fixed address it prints only this URL and skips the lookup.
+serverAddress = "localhost"
+
+[server]
+headless = true
