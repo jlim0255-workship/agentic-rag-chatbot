@@ -4,7 +4,7 @@
   "title": "Cyber Security (Period for Cyber Security Risk Assessment and Audit) Regulations 2024 [P.U.(A) 219/2024], made under the Cyber Security Act 2024",
   "source_url": null,
   "version_date": "2024-08-26",
-  "pdf_path": "data/raw/PUA-219.pdf",
+  "pdf_path": "../raw/PUA-219.pdf",
   "extraction_mode": "layout",
   "body_pages": [1, 1],
   "page_offset": 2,
@@ -18,5 +18,5 @@
   "definition_units": ["2"],
   "long_title": null,
   "schedule": null,
-  "checklist_path": "data/corpus/pua219.toc.json"
+  "checklist_path": "pua219.toc.json"
 }

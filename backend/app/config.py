@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     # Embedding model and vector size are tied (PRD 8.3): no defaults, so they are always set together.
     embed_model: str
     embed_dim: int = Field(gt=0, le=2000)  # pgvector HNSW indexes support at most 2000 dimensions
+    embed_batch_size: int = Field(default=16, gt=0)   # chunks per Ollama embed request
+    embed_timeout_s: float = Field(default=120, gt=0)  # per embed request; first call also loads the model
 
     database_url: str
 

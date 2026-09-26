@@ -4,7 +4,7 @@
   "title": "Cyber Security Act 2024 (Act 854)",
   "source_url": null,
   "version_date": "2024-06-26",
-  "pdf_path": "data/raw/Act-854.pdf",
+  "pdf_path": "../raw/Act-854.pdf",
   "extraction_mode": "plain",
   "body_pages": [7, 50],
   "page_offset": 0,
@@ -18,5 +18,5 @@
   "definition_units": ["4"],
   "long_title": {"start": "^An Act to\\b", "end_before": "^\\[ ?\\]$", "heading": "Long title"},
   "schedule": {"start": "^Schedule$", "end_before": "[\\x00-\\x08\\x0b-\\x1f]", "heading": "National critical information infrastructure sector"},
-  "checklist_path": "data/corpus/act854.toc.json"
+  "checklist_path": "act854.toc.json"
 }

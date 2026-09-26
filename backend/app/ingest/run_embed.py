@@ -7,53 +7,52 @@ Usage (from backend/):
 Reads contextual_text (header + text), never text alone. Model, dimension, URL and batch
 size come from settings (backend/app/config.py); nothing is hardcoded (CLAUDE.md).
 Talks only to local Ollama and Postgres, so it respects the offline rule.
+
+Documents are embedded WITHOUT an instruction prefix. (Qwen3-Embedding expects an
+instruction on the query side only; that belongs in retrieval, not here.)
 """
 from __future__ import annotations
 
 import argparse
-import json
-import urllib.request
+
+from app.config import get_settings
+from app.llm import ollama
 
 from . import db
-
-# from app.config import settings   # TODO(Jlim): exists after M0; needs OLLAMA_BASE_URL,
-#                                   # EMBED_MODEL, EMBED_DIM, EMBED_BATCH_SIZE, LLM_CALL_TIMEOUT_S
-
-
-def embed_texts(texts: list[str], base_url: str, model: str, timeout_s: float) -> list[list[float]]:
-    """POST {base_url}/api/embed with {"model": model, "input": texts}; return response["embeddings"].
-
-    Standard library urllib, so no new dependency. If backend/app/llm gets an Ollama client
-    wrapper at M0/M2, switch to it so timeouts and errors are handled in one place.
-
-    Documents are embedded WITHOUT an instruction prefix. (Qwen3-Embedding expects an
-    instruction on the query side only; that belongs in retrieval, not here.)
-    """
-    # TODO(Jlim): implement. Raise a clear error if the response count != len(texts).
-    ...
 
 
 def check_dims(vectors: list[list[float]], expected_dim: int) -> None:
     """Fail loudly if any vector length != EMBED_DIM (model and column dim are tied, PRD 8.3)."""
-    # TODO(Jlim): implement.
-    ...
+    bad = {len(v) for v in vectors if len(v) != expected_dim}
+    if bad:
+        raise ValueError(f"embedding model returned vectors of size {sorted(bad)}, but EMBED_DIM={expected_dim}. "
+                         "EMBED_MODEL and EMBED_DIM do not match.")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--all", action="store_true", help="re-embed every chunk")
     args = parser.parse_args()
+    settings = get_settings()
 
-    conn = db.get_connection()
-    rows = db.fetch_chunks_to_embed(conn, reembed_all=args.all)
-    print(f"{len(rows)} chunks to embed")
+    # One transaction: vectors and the model record are committed together, or not at all.
+    with db.get_connection() as conn:
+        stored = db.stored_embedding_model(conn)
+        if stored and stored != settings.embed_model and not args.all:
+            raise SystemExit(f"Stored vectors came from {stored!r} but EMBED_MODEL={settings.embed_model!r}. "
+                             "Embedding only the new chunks would mix two models; run with --all.")
 
-    # TODO(Jlim): loop over rows in batches of settings.EMBED_BATCH_SIZE:
-    #   vectors = embed_texts([text for _, text in batch], ...)
-    #   check_dims(vectors, settings.EMBED_DIM)
-    #   db.write_embeddings(conn, list(zip([id for id, _ in batch], vectors)))
-    # then db.record_embedding_model(conn, settings.EMBED_MODEL, settings.EMBED_DIM)
-    ...
+        rows = db.fetch_chunks_to_embed(conn, reembed_all=args.all)
+        print(f"{len(rows)} chunks to embed with {settings.embed_model}")
+        for start in range(0, len(rows), settings.embed_batch_size):
+            batch = rows[start:start + settings.embed_batch_size]
+            vectors = ollama.embed(settings.ollama_base_url, settings.embed_model,
+                                   [text for _, text in batch], settings.embed_timeout_s)
+            check_dims(vectors, settings.embed_dim)
+            db.write_embeddings(conn, [(id_, v) for (id_, _), v in zip(batch, vectors)])
+            print(f"  {start + len(batch)}/{len(rows)}")
+        db.record_embedding_model(conn, settings.embed_model, settings.embed_dim)
+    print("done")
 
 
 if __name__ == "__main__":

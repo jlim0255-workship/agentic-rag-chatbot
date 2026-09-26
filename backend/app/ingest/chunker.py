@@ -10,7 +10,11 @@ from .models import BlockConfig, Chunk, DocumentConfig, Line, Unit
 BREAK_BEFORE = re.compile(r"^(\((\d+[A-Z]*|[a-z]{1,4}|[A-Z])\)\s|\d+[A-Z]*\.\s|“)")
 
 # s4 intro line: "4. In this Act, unless the context otherwise requires—"
-DEFINITIONS_INTRO = "TODO(Jlim)"  # "repeat" in each definition chunk, or "drop" (PRD 8.5 open item)
+# "drop": the contextual header already says "Section 4: Interpretation — “term”", so repeating
+# the intro in all 20 definition chunks adds nothing for retrieval.
+DEFINITIONS_INTRO = "drop"
+
+TERM = re.compile(r"“([^”]+)”")
 
 
 def to_text(lines: list[Line]) -> str:
@@ -20,8 +24,12 @@ def to_text(lines: list[Line]) -> str:
     a wrapped line that happens to begin with a cross-reference like "(1) accordingly"
     gets its own line. Harmless for retrieval; ignore unless it shows up in spot checks.
     """
-    # TODO(Jlim): implement.
-    ...
+    parts: list[str] = []
+    for i, line in enumerate(lines):
+        if i:
+            parts.append("\n" if BREAK_BEFORE.match(line.text) else " ")
+        parts.append(line.text)
+    return "".join(parts)
 
 
 def split_definitions(unit: Unit) -> list[tuple[str, list[Line]]]:
@@ -36,8 +44,33 @@ def split_definitions(unit: Unit) -> list[tuple[str, list[Line]]]:
       information infrastructure.
     - Apply DEFINITIONS_INTRO to the intro sentence.
     """
-    # TODO(Jlim): implement.
-    ...
+    first, rest = unit.lines[0], unit.lines[1:]
+    quote = first.text.find("“")
+    intro: list[Line]
+    groups: list[list[Line]] = []
+    if quote > 0:  # inline: split the first line into intro + start of the first definition
+        intro = [Line(page=first.page, text=first.text[:quote].rstrip())]
+        groups.append([Line(page=first.page, text=first.text[quote:])])
+    else:
+        intro = [first]
+    for line in rest:
+        if line.text.startswith("“"):
+            groups.append([line])
+        elif groups:
+            groups[-1].append(line)
+        else:
+            intro.append(line)  # intro sentence wrapped onto a second line
+
+    if not groups:
+        raise ValueError(f"unit {unit.unit}: no definitions found")
+
+    out: list[tuple[str, list[Line]]] = []
+    for g in groups:
+        m = TERM.match(g[0].text)
+        if not m:
+            raise ValueError(f"unit {unit.unit}: definition without a quoted term: {g[0].text[:60]!r}")
+        out.append((m.group(1), intro + g if DEFINITIONS_INTRO == "repeat" else g))
+    return out
 
 
 def contextual_header(cfg: DocumentConfig, unit_label: str | None, unit_no: str | None,
@@ -49,10 +82,16 @@ def contextual_header(cfg: DocumentConfig, unit_label: str | None, unit_no: str 
       - omit the Part segment when part is None (regulations, long title, Schedule)
       - long title / Schedule: last segment is just the block heading
       - definition chunks: append ' — “<term>”' to the last segment
-    Title case: str.title() capitalises "And"/"Of"; decide whether that matters to you.
+    Title case: done in structure.title_case, which keeps "and"/"of" lowercase.
     """
-    # TODO(Jlim): implement.
-    ...
+    segments = [cfg.title]
+    if part is not None:
+        segments.append(f"Part {part}: {part_title}" if part_title else f"Part {part}")
+    last = f"{unit_label} {unit_no}: {heading}" if unit_label and unit_no else heading
+    if term:
+        last += f" — “{term}”"
+    segments.append(last)
+    return " | ".join(segments)
 
 
 def chunk_id(cfg: DocumentConfig, unit_key: str, seq: int) -> str:
@@ -60,15 +99,23 @@ def chunk_id(cfg: DocumentConfig, unit_key: str, seq: int) -> str:
 
     Blocks use their own key without prefix: act854:long_title:1, act854:schedule:1.
     """
-    # TODO(Jlim): implement.
-    ...
+    return f"{cfg.id}:{unit_key}:{seq}"
+
+
+def _make_chunk(cfg: DocumentConfig, id_: str, lines: list[Line], section: str, subsection: str | None,
+                heading: str, part: str | None, part_title: str | None, header: str) -> Chunk:
+    text = to_text(lines)
+    return Chunk(id=id_, document_id=cfg.id, part=part, part_title=part_title, section=section,
+                 subsection=subsection, heading=heading, page_start=lines[0].page,
+                 page_end=lines[-1].page, text=text, contextual_text=f"{header}\n{text}")
 
 
 def make_block_chunk(cfg: DocumentConfig, lines: list[Line], block: BlockConfig,
                      section: str) -> Chunk:
     """One chunk for the long title (section='long_title') or Schedule (section='Schedule')."""
-    # TODO(Jlim): implement. part=None, subsection=None.
-    ...
+    header = contextual_header(cfg, None, None, block.heading, None, None)
+    return _make_chunk(cfg, chunk_id(cfg, section.lower(), 1), lines, section, None,
+                       block.heading, None, None, header)
 
 
 def make_chunks(cfg: DocumentConfig, units: list[Unit]) -> list[Chunk]:
@@ -77,5 +124,18 @@ def make_chunks(cfg: DocumentConfig, units: list[Unit]) -> list[Chunk]:
     page_start/page_end come from the first/last Line of each chunk (already printed pages).
     subsection: None for whole units, the defined term for definition chunks.
     """
-    # TODO(Jlim): implement.
-    ...
+    chunks: list[Chunk] = []
+    for unit in units:
+        key = f"{cfg.id_prefix}{unit.unit}"
+        if unit.unit in cfg.definition_units:
+            for seq, (term, lines) in enumerate(split_definitions(unit), start=1):
+                header = contextual_header(cfg, cfg.unit_label, unit.unit, unit.heading,
+                                           unit.part, unit.part_title, term)
+                chunks.append(_make_chunk(cfg, chunk_id(cfg, key, seq), lines, unit.unit, term,
+                                          unit.heading, unit.part, unit.part_title, header))
+        else:
+            header = contextual_header(cfg, cfg.unit_label, unit.unit, unit.heading,
+                                       unit.part, unit.part_title)
+            chunks.append(_make_chunk(cfg, chunk_id(cfg, key, 1), unit.lines, unit.unit, None,
+                                      unit.heading, unit.part, unit.part_title, header))
+    return chunks

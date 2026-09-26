@@ -26,7 +26,7 @@ class DocumentConfig(BaseModel):
     title: str                                # used in the contextual header
     source_url: str | None
     version_date: date
-    pdf_path: str
+    pdf_path: str                             # relative to this config file; made absolute on load
     extraction_mode: Literal["plain", "layout"]  # pypdf mode; "layout" fixes split words in the P.U.(A) PDFs
     body_pages: tuple[int, int]               # physical pages, 1-based, inclusive
     page_offset: int                          # printed page = physical page + offset
@@ -40,7 +40,7 @@ class DocumentConfig(BaseModel):
     definition_units: list[str]               # units split one chunk per definition
     long_title: BlockConfig | None
     schedule: BlockConfig | None
-    checklist_path: str
+    checklist_path: str                       # relative to this config file; made absolute on load
 
 
 class ChecklistEntry(BaseModel):
@@ -58,8 +58,8 @@ class Unit(BaseModel):
 
     unit: str
     heading: str
-    part: str | None          # see run_chunk question about part format
-    part_title: str | None
+    part: str | None          # Roman numeral as printed, e.g. "IV"
+    part_title: str | None    # title case, e.g. "Duties and Powers of Chief Executive"
     lines: list[Line]         # starts with the "N. ..." line; heading lines excluded
 
 
@@ -69,6 +69,7 @@ class Chunk(BaseModel):
     id: str
     document_id: str
     part: str | None
+    part_title: str | None
     section: str
     subsection: str | None
     heading: str
