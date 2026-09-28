@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 
-from .models import BlockConfig, Chunk, DocumentConfig, Line, Unit
+from .models import Block, Chunk, DocumentCard, Line, Unit
 
 # A new display line starts at a subsection "(2)", paragraph "(a)", subparagraph "(iv)",
 # the s14 "(A)"-"(F)" list, a unit start "23.", or a definition opening quote.
@@ -73,7 +73,7 @@ def split_definitions(unit: Unit) -> list[tuple[str, list[Line]]]:
     return out
 
 
-def contextual_header(cfg: DocumentConfig, unit_label: str | None, unit_no: str | None,
+def contextual_header(card: DocumentCard, unit_label: str | None, unit_no: str | None,
                       heading: str, part: str | None, part_title: str | None,
                       term: str | None = None) -> str:
     """Build the header prepended to text for embedding and BM25 (PRD 8.5).
@@ -84,7 +84,7 @@ def contextual_header(cfg: DocumentConfig, unit_label: str | None, unit_no: str 
       - definition chunks: append ' — “<term>”' to the last segment
     Title case: done in structure.title_case, which keeps "and"/"of" lowercase.
     """
-    segments = [cfg.title]
+    segments = [card.title]
     if part is not None:
         segments.append(f"Part {part}: {part_title}" if part_title else f"Part {part}")
     last = f"{unit_label} {unit_no}: {heading}" if unit_label and unit_no else heading
@@ -94,48 +94,48 @@ def contextual_header(cfg: DocumentConfig, unit_label: str | None, unit_no: str 
     return " | ".join(segments)
 
 
-def chunk_id(cfg: DocumentConfig, unit_key: str, seq: int) -> str:
+def chunk_id(card: DocumentCard, unit_key: str, seq: int) -> str:
     """'<doc>:<prefix><unit>:<n>', e.g. act854:s23:1, pua220:r2:1, act854:s4:7.
 
     Blocks use their own key without prefix: act854:long_title:1, act854:schedule:1.
     """
-    return f"{cfg.id}:{unit_key}:{seq}"
+    return f"{card.id}:{unit_key}:{seq}"
 
 
-def _make_chunk(cfg: DocumentConfig, id_: str, lines: list[Line], section: str, subsection: str | None,
+def _make_chunk(card: DocumentCard, id_: str, lines: list[Line], section: str, subsection: str | None,
                 heading: str, part: str | None, part_title: str | None, header: str) -> Chunk:
     text = to_text(lines)
-    return Chunk(id=id_, document_id=cfg.id, part=part, part_title=part_title, section=section,
+    return Chunk(id=id_, document_id=card.id, part=part, part_title=part_title, section=section,
                  subsection=subsection, heading=heading, page_start=lines[0].page,
                  page_end=lines[-1].page, text=text, contextual_text=f"{header}\n{text}")
 
 
-def make_block_chunk(cfg: DocumentConfig, lines: list[Line], block: BlockConfig,
+def make_block_chunk(card: DocumentCard, lines: list[Line], block: Block,
                      section: str) -> Chunk:
     """One chunk for the long title (section='long_title') or Schedule (section='Schedule')."""
-    header = contextual_header(cfg, None, None, block.heading, None, None)
-    return _make_chunk(cfg, chunk_id(cfg, section.lower(), 1), lines, section, None,
+    header = contextual_header(card, None, None, block.heading, None, None)
+    return _make_chunk(card, chunk_id(card, section.lower(), 1), lines, section, None,
                        block.heading, None, None, header)
 
 
-def make_chunks(cfg: DocumentConfig, units: list[Unit]) -> list[Chunk]:
-    """One chunk per unit; units in cfg.definition_units become one chunk per definition.
+def make_chunks(card: DocumentCard, units: list[Unit]) -> list[Chunk]:
+    """One chunk per unit; units in card.definitions become one chunk per definition.
 
     page_start/page_end come from the first/last Line of each chunk (already printed pages).
     subsection: None for whole units, the defined term for definition chunks.
     """
     chunks: list[Chunk] = []
     for unit in units:
-        key = f"{cfg.id_prefix}{unit.unit}"
-        if unit.unit in cfg.definition_units:
+        key = f"{card.id_prefix}{unit.unit}"
+        if unit.unit in card.definitions:
             for seq, (term, lines) in enumerate(split_definitions(unit), start=1):
-                header = contextual_header(cfg, cfg.unit_label, unit.unit, unit.heading,
+                header = contextual_header(card, card.unit, unit.unit, unit.heading,
                                            unit.part, unit.part_title, term)
-                chunks.append(_make_chunk(cfg, chunk_id(cfg, key, seq), lines, unit.unit, term,
+                chunks.append(_make_chunk(card, chunk_id(card, key, seq), lines, unit.unit, term,
                                           unit.heading, unit.part, unit.part_title, header))
         else:
-            header = contextual_header(cfg, cfg.unit_label, unit.unit, unit.heading,
+            header = contextual_header(card, card.unit, unit.unit, unit.heading,
                                        unit.part, unit.part_title)
-            chunks.append(_make_chunk(cfg, chunk_id(cfg, key, 1), unit.lines, unit.unit, None,
+            chunks.append(_make_chunk(card, chunk_id(card, key, 1), unit.lines, unit.unit, None,
                                       unit.heading, unit.part, unit.part_title, header))
     return chunks

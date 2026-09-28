@@ -7,7 +7,7 @@ from app.config import get_settings
 from app.db import meta
 from app.db.connection import connect
 
-from .models import Chunk, DocumentConfig
+from .models import Chunk, DocumentCard
 
 
 def get_connection() -> psycopg.Connection:
@@ -22,7 +22,7 @@ def to_vector_literal(vector: list[float]) -> str:
     return "[" + ",".join(repr(float(x)) for x in vector) + "]"
 
 
-def upsert_document(conn: psycopg.Connection, cfg: DocumentConfig) -> None:
+def upsert_document(conn: psycopg.Connection, cfg: DocumentCard) -> None:
     """INSERT ... ON CONFLICT (id) DO UPDATE into `documents` (id, title, short_name, version_date, source_url)."""
     conn.execute(
         """

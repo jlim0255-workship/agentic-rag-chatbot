@@ -1,26 +1,38 @@
-"""Body lines -> units (sections/regulations), located with the committed ToC checklist."""
+"""Step 3, structure: body lines + outline -> units (sections/regulations).
+
+Printed legislation looks like this (Act 854, page 26):
+
+    Part IV                                   <- Part block: only where a new Part starts
+    NATIONAL CRITICAL INFORMATION ...            (title in ALL CAPS, may wrap)
+    Duty to give notification on cyber        <- heading (may wrap over several lines)
+    security incident
+    23. (1) If it comes to the knowledge ...  <- unit line: "N. " starts the unit's text
+    (2) ...
+
+The outline says which units exist, in order, with their headings and Parts. For each outline row
+this module finds the unit line, checks the lines just above it read exactly as the heading, and
+cuts the text up to the next unit's heading. Anything the outline does not explain fails the run.
+"""
 from __future__ import annotations
 
 import re
 
 from .extract import normalise
-from .models import ChecklistEntry, Line, Unit
+from .models import Line, OutlineEntry, Unit
 
 UNIT_START = re.compile(r"^(\d+[A-Z]*)\.\s")   # "23. (1) If it comes...", "4. In this Act..."
 PART_LINE = re.compile(r"^Part ([IVXLC]+)$")    # "Part IV"; title on the next line(s), ALL CAPS
+MAX_HEADING_LINES = 4                            # the longest heading in Act 854 (s18) wraps over 3
 
 SMALL_WORDS = {"a", "an", "and", "as", "at", "by", "for", "in", "of", "on", "or", "the", "to", "with"}
 
 
-class ChecklistMismatch(Exception):
-    """Raised when the body does not match the checklist. Fails the run."""
+class OutlineMismatch(Exception):
+    """The body does not match the outline. Fails the run."""
 
 
 def title_case(text: str) -> str:
-    """'DUTIES AND POWERS OF CHIEF EXECUTIVE' -> 'Duties and Powers of Chief Executive'.
-
-    str.title() would give 'Duties And Powers Of ...'; small words stay lowercase except first.
-    """
+    """'DUTIES AND POWERS OF CHIEF EXECUTIVE' -> 'Duties and Powers of Chief Executive'."""
     words = text.lower().split()
     return " ".join(w if i and w in SMALL_WORDS else w[:1].upper() + w[1:] for i, w in enumerate(words))
 
@@ -34,102 +46,71 @@ def unit_number(line: Line) -> str | None:
     return m.group(1) if m else None
 
 
-def find_heading_start(body: list[Line], unit_line: int, heading: str, floor: int) -> int:
-    """Walk back from the unit's "N." line, joining lines, until the join equals the heading.
-
-    `floor` is the previous unit's "N." line; the heading can never reach back that far.
-    """
-    target = normalise(heading)
-    for start in range(unit_line - 1, floor, -1):
-        joined = normalise(" ".join(line.text for line in body[start:unit_line]))
-        if joined == target:
-            return start
-        if len(joined) > len(target):
+def heading_start(body: list[Line], unit_line: int, entry: OutlineEntry, floor: int) -> int:
+    """Index of the heading's first line: the 1..MAX_HEADING_LINES lines above the unit line
+    that, joined, read exactly as the outline heading (never reaching back to `floor`)."""
+    for k in range(1, MAX_HEADING_LINES + 1):
+        start = unit_line - k
+        if start <= floor:
             break
-    found = body[unit_line - 1].text if unit_line > 0 else "<nothing>"
-    raise ChecklistMismatch(
-        f"unit {unit_number(body[unit_line])}: heading {heading!r} not found above its first line "
-        f"(line above is {found!r}, page {body[unit_line].page})"
-    )
+        if normalise(" ".join(line.text for line in body[start:unit_line])) == entry.heading:
+            return start
+    above = body[unit_line - 1].text if unit_line > 0 else "<nothing>"
+    raise OutlineMismatch(f"unit {entry.unit}: heading {entry.heading!r} not found above its first line "
+                          f"(line above is {above!r}, page {body[unit_line].page})")
 
 
-def split_part(region: list[Line]) -> tuple[list[Line], tuple[str, str] | None]:
-    """Cut a 'Part X' line and its ALL-CAPS title line(s) off the end of a region.
-
-    Returns (lines before the Part, (numeral, title in title case)) or (region, None).
-    The Part block must be the last thing in the region: the next unit's heading follows it.
-    """
-    for i, line in enumerate(region):
-        m = PART_LINE.match(line.text)
-        if not m:
-            continue
-        title_lines = region[i + 1:]
-        if not title_lines or not all(is_all_caps(t.text) for t in title_lines):
-            raise ChecklistMismatch(
-                f"'Part {m.group(1)}' on page {line.page} is not followed only by an ALL-CAPS title "
-                f"before the next unit's heading: {[t.text for t in title_lines]}"
-            )
-        title = title_case(" ".join(t.text for t in title_lines))
-        return region[:i], (m.group(1), title)
-    return region, None
+def cut_part_block(lines: list[Line], entry: OutlineEntry) -> list[Line]:
+    """Remove the 'Part X' line and its ALL-CAPS title from the end of `lines`, checking both against
+    the outline row that starts the Part. Returns the lines before the block."""
+    i = next((i for i, line in enumerate(lines) if line.text == f"Part {entry.part}"), None)
+    title = lines[i + 1:] if i is not None else []
+    if i is None or not title or not all(is_all_caps(t.text) for t in title):
+        raise OutlineMismatch(f"unit {entry.unit} starts Part {entry.part}, but no 'Part {entry.part}' line "
+                              f"followed only by an ALL-CAPS title comes before its heading")
+    printed = title_case(" ".join(t.text for t in title))
+    if printed != entry.part_title:
+        raise OutlineMismatch(f"Part {entry.part}: body title {printed!r} differs from outline {entry.part_title!r}")
+    return lines[:i]
 
 
-def detect_units(body: list[Line], checklist: list[ChecklistEntry], has_parts: bool) -> list[Unit]:
-    """Locate every checklist unit in order and return them with their lines and Part.
-
-    Why checklist-guided: a heading cannot be found by punctuation alone. Most headings have
-    no full stop, but "List of seized objects, etc." (s41-45) and s58/s59 end with one, and
-    long headings wrap over several lines (s18 spans 3). So for each entry, in order:
-      1. find the next line (after the previous unit) where UNIT_START's number == entry.unit
-      2. walk backwards from it, joining lines, until the normalised join == entry.heading;
-         if you pass the previous unit or overshoot the heading length -> ChecklistMismatch
-      3. the unit's lines run from its "N." line to the next unit's first heading line
-
-    Then the independence checks (these are what make it a validation, not just a lookup):
-      - any UNIT_START line not claimed by an entry -> ChecklistMismatch ("extra unit")
-      - any entry not found -> ChecklistMismatch ("missing unit")
-
-    Parts (only if has_parts):
-      - a "Part X" line + ALL-CAPS title line(s) sits between the end of one unit's text and
-        the next unit's heading. Cut it out of the previous unit's lines; it applies to the
-        units that follow.
-      - the first Part (Part I) appears before the first unit's heading, not inside a unit.
-      - Part titles can wrap over several ALL-CAPS lines (Part IV spans 3); they are joined.
-    """
-    # 1-2: locate each entry's "N." line and heading start.
-    located: list[tuple[ChecklistEntry, int, int]] = []  # (entry, heading_start, unit_line)
-    prev_unit_line = -1
-    for entry in checklist:
-        unit_line = next((i for i in range(prev_unit_line + 1, len(body))
-                          if unit_number(body[i]) == entry.unit), None)
+def detect_units(body: list[Line], outline: list[OutlineEntry]) -> list[Unit]:
+    """Find every outline row in the body, in order, and return the units with their lines."""
+    # 1. Locate each row's unit line and heading, in order.
+    starts: list[tuple[int, int]] = []  # (heading_start, unit_line) per outline row
+    prev = -1
+    for entry in outline:
+        unit_line = next((i for i in range(prev + 1, len(body)) if unit_number(body[i]) == entry.unit), None)
         if unit_line is None:
-            raise ChecklistMismatch(f"missing unit {entry.unit} ({entry.heading!r})")
-        heading_start = find_heading_start(body, unit_line, entry.heading, prev_unit_line)
-        located.append((entry, heading_start, unit_line))
-        prev_unit_line = unit_line
+            raise OutlineMismatch(f"missing unit {entry.unit} ({entry.heading!r})")
+        starts.append((heading_start(body, unit_line, entry, prev), unit_line))
+        prev = unit_line
 
-    # Independence check: every "N." line in the body must belong to a checklist entry.
-    claimed = {unit_line for _, _, unit_line in located}
+    # 2. Independence check: every "N. " line in the body must belong to an outline row.
+    claimed = {unit_line for _, unit_line in starts}
     for i, line in enumerate(body):
         if unit_number(line) is not None and i not in claimed:
-            raise ChecklistMismatch(f"extra unit: line {line.text[:60]!r} on page {line.page} "
-                                    "starts like a unit but is not in the checklist")
+            raise OutlineMismatch(f"extra unit: line {line.text[:60]!r} on page {line.page} "
+                                  "starts like a unit but is not in the outline")
 
-    # 3: slice lines and assign Parts.
-    part: tuple[str, str] | None = None
-    lead_in = body[:located[0][1]] if located else body
-    if has_parts:
-        lead_in, part = split_part(lead_in)
+    # 3. Nothing may come before the first heading except the first Part's block.
+    lead_in = body[:starts[0][0]] if starts else body
+    if outline and outline[0].part:
+        lead_in = cut_part_block(lead_in, outline[0])
     if lead_in:
-        raise ChecklistMismatch(f"unexpected lines before the first unit: {[l.text for l in lead_in][:5]}")
+        raise OutlineMismatch(f"unexpected lines before the first unit: {[l.text for l in lead_in][:5]}")
 
+    # 4. A unit's text runs to the next unit's heading, minus the next Part's block if a Part starts there.
     units: list[Unit] = []
-    for k, (entry, _, unit_line) in enumerate(located):
-        end = located[k + 1][1] if k + 1 < len(located) else len(body)
-        lines, next_part = split_part(body[unit_line:end]) if has_parts else (body[unit_line:end], None)
-        units.append(Unit(unit=entry.unit, heading=entry.heading,
-                          part=part[0] if part else None, part_title=part[1] if part else None,
-                          lines=lines))
-        if next_part:
-            part = next_part
+    for k, (entry, (_, unit_line)) in enumerate(zip(outline, starts)):
+        nxt = outline[k + 1] if k + 1 < len(outline) else None
+        lines = body[unit_line:starts[k + 1][0] if nxt else len(body)]
+        if nxt and nxt.part != entry.part:
+            lines = cut_part_block(lines, nxt)
+        stray = next((l for l in lines if PART_LINE.match(l.text)), None)
+        if stray:
+            raise OutlineMismatch(f"unit {entry.unit}: '{stray.text}' on page {stray.page} is not where the outline "
+                                  "starts a Part")
+        units.append(Unit(unit=entry.unit, heading=entry.heading, part=entry.part,
+                          part_title=entry.part_title, lines=lines))
     return units

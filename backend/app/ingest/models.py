@@ -1,6 +1,10 @@
-"""Data models for ingestion: per-document config, checklist entries, lines and chunks.
+"""Data models for ingestion: the document card, outline entries, lines, units and chunks.
 
-Complete: no blanks in this file. Field meanings follow PRD Sections 8.3 and 8.5.
+Field meanings follow PRD Sections 8.3 and 8.5. The pipeline, one step per module:
+    extract.py  PDF -> Line list            (writes data/work/<doc>.lines.txt)
+    outline.py  Lines -> OutlineEntry list  (writes/checks data/corpus/<doc>.outline.md)
+    structure.py  body Lines + outline -> Unit list
+    chunker.py  Units -> Chunk list
 """
 from __future__ import annotations
 
@@ -10,42 +14,49 @@ from typing import Literal
 from pydantic import BaseModel
 
 
-class BlockConfig(BaseModel):
-    """A non-numbered block captured as its own chunk (long title, Schedule)."""
+class Block(BaseModel):
+    """A non-numbered block kept as one chunk (long title, Schedule). Lines are matched exactly."""
 
-    start: str        # regex matching the block's first line
-    end_before: str   # regex matching the first line AFTER the block
     heading: str      # heading stored on the chunk
+    first_line: str
+    last_line: str
 
 
-class DocumentConfig(BaseModel):
-    """One per document, loaded from data/corpus/<id>.json."""
+class DocumentCard(BaseModel):
+    """Facts about one PDF, hand-written in data/corpus/<id>.toml. See act854.toml for comments."""
 
-    id: str                                   # e.g. "act854"; also the chunk id prefix
-    short_name: str                           # filter value, e.g. "ACT854"
+    id: str                                   # the card's file name, e.g. "act854"; also the chunk id prefix
     title: str                                # used in the contextual header
-    source_url: str | None
+    short_name: str                           # filter value, e.g. "ACT854"
     version_date: date
-    pdf_path: str                             # relative to this config file; made absolute on load
-    extraction_mode: Literal["plain", "layout"]  # pypdf mode; "layout" fixes split words in the P.U.(A) PDFs
-    body_pages: tuple[int, int]               # physical pages, 1-based, inclusive
-    page_offset: int                          # printed page = physical page + offset
-    strip_top_patterns: list[str]             # running headers, matched against a page's first line(s)
-    strip_bottom_patterns: list[str]          # running footers, matched against a page's last line(s)
-    body_start_after: str                     # regex; body starts on the line after the match
-    body_end_before: str                      # regex; body ends before the match
-    unit_label: Literal["Section", "Regulation"]
-    id_prefix: Literal["s", "r"]
-    has_parts: bool
-    definition_units: list[str]               # units split one chunk per definition
-    long_title: BlockConfig | None
-    schedule: BlockConfig | None
-    checklist_path: str                       # relative to this config file; made absolute on load
+    source_url: str | None = None
+    pdf: str                                  # relative to the card file; made absolute on load
+    extraction: Literal["plain", "layout"]    # pypdf extraction mode
+    page_offset: int = 0                      # printed page = PDF page + offset
+    headers: list[str] = []                   # running headers, "{page}" = page number
+    footers: list[str] = []
+    toc_starts_after: str | None = None       # arrangement of sections; None = outline from the body
+    toc_ends_before: str | None = None
+    body_starts_after: str                    # exact lines that bound the operative text
+    body_ends_before: str
+    unit: Literal["Section", "Regulation"]
+    definitions: list[str] = []               # units split one chunk per definition
+    long_title: Block | None = None
+    schedule: Block | None = None
+
+    @property
+    def id_prefix(self) -> str:
+        """'s' for sections, 'r' for regulations (chunk ids: act854:s23:1, pua220:r2:1)."""
+        return self.unit[0].lower()
 
 
-class ChecklistEntry(BaseModel):
-    unit: str       # "23", "12A"
-    heading: str    # whitespace-normalised heading, exactly as printed
+class OutlineEntry(BaseModel):
+    """One row of the outline: a unit the body must contain, in order."""
+
+    part: str | None          # Roman numeral as printed, e.g. "IV"; None if the document has no Parts
+    part_title: str | None    # title case, e.g. "Duties and Powers of Chief Executive"
+    unit: str                 # "23", "12A"
+    heading: str              # whitespace-normalised, exactly as printed
 
 
 class Line(BaseModel):
@@ -58,9 +69,9 @@ class Unit(BaseModel):
 
     unit: str
     heading: str
-    part: str | None          # Roman numeral as printed, e.g. "IV"
-    part_title: str | None    # title case, e.g. "Duties and Powers of Chief Executive"
-    lines: list[Line]         # starts with the "N. ..." line; heading lines excluded
+    part: str | None
+    part_title: str | None
+    lines: list[Line]         # starts with the "N. ..." line; heading and Part lines excluded
 
 
 class Chunk(BaseModel):
