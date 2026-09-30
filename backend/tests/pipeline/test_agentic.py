@@ -120,17 +120,8 @@ def test_partial_evidence_generates_and_names_the_missing_part(settings: Setting
     assert "could not be found in the documents" in prompt and "- licence fee amount" in prompt
 
 
-def test_verified_evidence_is_kept_when_an_extra_need_stays_uncovered(settings: Settings, world) -> None:
-    # The grader covers the real need with a verified quote but also lists a need it cannot verify, every time.
-    world.by_query = {q: [chunk("act854:s23:1")] for q in ("What is the penalty?", "p", "e", "s")}
-    partly = grade(["act854:s23:1"], missing="penalty for ignoring a directive")
-    world.llm = FakeLLM(grades=[partly] * 3, rewrites=[{"paraphrase": "p", "expanded": "e"}, {"step_back": "s"}],
-                        answer="The fine is RM500,000 [act854:s23:1]. Directives are not covered.")
-    events = run(settings)
-    gen = [d for n, d in events if n == "trace" and d["node"] == "generate" and d["status"] == "start"][0]
-    assert gen["data"]["chunks"][0] == "act854:s23:1"
-    assert gen["data"]["unanswered"] == []  # partly covered: not announced as missing (the writer would give up)
-    assert final(events)["done"] == {"status": "partial"}
+# (Experiment branch: the needs grader's "verified evidence is kept" test is replaced by
+#  test_grade.py::test_known_tradeoff_a_single_question_never_judged_sufficient_is_not_found.)
 
 
 def test_no_evidence_at_all_is_not_found(settings: Settings, monkeypatch) -> None:
@@ -155,7 +146,7 @@ def test_structured_retries_once_then_succeeds(settings: Settings, monkeypatch) 
     replies = iter(["{broken", json.dumps(grade(["a:s1:1"]))])
     monkeypatch.setattr(ollama, "chat", lambda *a, **k: next(replies))
     out, calls = call_structured("p", GradeOutput, settings, 5)
-    assert calls == 2 and out.needs[0].chunk_id == "a:s1:1"
+    assert calls == 2 and out.sufficient is True
 
 
 def test_structured_gives_none_after_two_invalid(settings: Settings, monkeypatch) -> None:

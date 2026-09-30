@@ -33,7 +33,7 @@ class FakeLLM:
             kind = "generate"
         else:
             props = format["properties"]
-            kind = ("plan" if "sub_queries" in props else "grade" if "needs" in props
+            kind = ("plan" if "sub_queries" in props else "grade" if "sufficient" in props
                     else "check" if "supported" in props else "rewrite")
         self.calls.append(kind)
         if kind == "generate":
@@ -52,12 +52,10 @@ class FakeLLM:
 
 
 def grade(relevant: list[str], not_relevant: list[str] = (), missing: str = "") -> dict:
-    """Grader reply in needs format: one covered need per relevant chunk (quoting its text, which
-    `chunk()` sets to 'text of <id>'), plus one uncovered need if anything is missing."""
-    needs = [{"need": f"need {i}", "chunk_id": i, "quote": f"text of {i}"} for i in relevant]
-    if missing or not relevant:
-        needs.append({"need": missing or "the answer", "chunk_id": None, "quote": None})
-    return {"needs": needs}
+    """Yes/no grader reply (experiment): sufficient when any chunk is relevant and nothing is missing.
+    The signature is kept from the needs grader so the routing tests read the same."""
+    sufficient = bool(relevant) and not missing
+    return {"sufficient": sufficient, "missing": "" if sufficient else (missing or "the answer")}
 
 
 class FakeToolModel:

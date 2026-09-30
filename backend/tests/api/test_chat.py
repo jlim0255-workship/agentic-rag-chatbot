@@ -117,8 +117,7 @@ def test_agentic_mode_streams_in_prd_order(client: TestClient, monkeypatch: pyte
     monkeypatch.setattr("app.pipeline.nodes.planner.allowed_filters", lambda conn: ([("ACT854", "Act")], []))
     monkeypatch.setattr("app.pipeline.nodes.tool_agent.ChatOllama", lambda **_k: FakeToolModel())
     plan = json.dumps({"sub_queries": [{"query": "penalty for not notifying"}]})
-    grade = json.dumps({"needs": [{"need": "penalty", "chunk_id": "act854:s23:1",
-                                   "quote": "fine not exceeding five hundred thousand ringgit"}]})
+    grade = json.dumps({"sufficient": True, "missing": ""})
     check = json.dumps({"supported": [True]})
     monkeypatch.setattr(ollama, "chat", lambda *a, format=None, **k:
                         ((plan if "sub_queries" in format["properties"] else
