@@ -1,4 +1,4 @@
-"""Text joining, definition splitting, headers and IDs (no PDF needed)."""
+"""Text joining, definition splitting, headers and IDs."""
 from __future__ import annotations
 
 from datetime import date
@@ -6,45 +6,19 @@ from datetime import date
 import pytest
 
 from app.ingest.chunker import chunk_id, contextual_header, make_chunks, split_definitions, to_text
-from app.ingest.extract import between, find_line, normalise, strip_running_lines
 from app.ingest.models import DocumentCard, Line, Unit
 
 
 def make_cfg(**overrides) -> DocumentCard:
     base = dict(
         id="act854", short_name="ACT854", title="Cyber Security Act 2024 (Act 854)",
-        version_date=date(2024, 6, 26), pdf="x.pdf", extraction="plain",
-        body_starts_after="x", body_ends_before="y", unit="Section", definitions=["4"],
+        version_date=date(2024, 6, 26), unit="Section", definitions=["4"],
     )
     return DocumentCard(**{**base, **overrides})
 
 
 def L(text: str, page: int = 8) -> Line:
     return Line(page=page, text=text)
-
-
-# --- extract helpers ---
-
-def test_normalise_collapses_layout_padding() -> None:
-    assert normalise("  information  infrastructure      or  any ") == "information infrastructure or any"
-
-
-def test_strip_running_lines_only_at_page_edges() -> None:
-    page = ["P.U. (A) 220", "Citation", "3", "(a) text", "5"]
-    assert strip_running_lines(page, ["P.U. (A) 220"], ["{page}"]) == ["Citation", "3", "(a) text"]
-    act = ["Laws of Malaysia8 Act 854", "Text", "more"]
-    assert strip_running_lines(act, ["Cyber Security {page}", "Laws of Malaysia{page} Act 854"], []) == ["Text", "more"]
-
-
-def test_find_line_is_exact_and_fails_loudly() -> None:
-    assert find_line([L("Schedule of fees"), L("Schedule")], "Schedule") == 1
-    with pytest.raises(ValueError, match="nothing"):
-        find_line([L("a")], "nothing")
-
-
-def test_between_excludes_both_markers() -> None:
-    lines = [L("cover"), L("ENACTED"), L("1. Text."), L("Schedule"), L("list")]
-    assert [l.text for l in between(lines, "ENACTED", "Schedule")] == ["1. Text."]
 
 
 # --- to_text ---

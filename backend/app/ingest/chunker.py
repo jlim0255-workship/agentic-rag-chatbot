@@ -82,7 +82,7 @@ def contextual_header(card: DocumentCard, unit_label: str | None, unit_no: str |
       - omit the Part segment when part is None (regulations, long title, Schedule)
       - long title / Schedule: last segment is just the block heading
       - definition chunks: append ' — “<term>”' to the last segment
-    Title case: done in structure.title_case, which keeps "and"/"of" lowercase.
+    Part titles arrive in title case, as written in data/llamaparsed/<doc>.md.
     """
     segments = [card.title]
     if part is not None:

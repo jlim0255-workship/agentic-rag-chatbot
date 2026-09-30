@@ -24,9 +24,14 @@ def tool_agent_node(state: State, ctx: Ctx) -> dict:
                        client_kwargs={"timeout": ctx.timeout()}).bind_tools([lookup_staff])
     try:
         msg = model.invoke(PROMPT.format(question=state["question"]))
+        # if sucessful, msg is an AIMessage with or without tool_calls (e.g. tool_calls = [{"name": "lookup_staff", "args": {"topics": ["incident_response", "ncii_notification"]}}]); if the model fails, it raises an exception.
     except httpx.TimeoutException as e:
         raise OllamaTimeout(f"tool_agent: {e}") from e
+
+    # stream to frontend
     ctx.emit("tool_agent", "end",
              f"calls {', '.join(c['name'] for c in msg.tool_calls)}" if msg.tool_calls else "no tool needed",
              {"tool_calls": [{"name": c["name"], "args": c["args"]} for c in msg.tool_calls]})
+
+    # return the tool call(s) (if any) and increment the llm_calls counter; the flow.run node will call the tool(s) and append the result to the answer.
     return {"messages": [msg], "llm_calls": state["llm_calls"] + 1}

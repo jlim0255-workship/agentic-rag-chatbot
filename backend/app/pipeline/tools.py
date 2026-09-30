@@ -18,6 +18,7 @@ def lookup_staff(topics: list[str]) -> str:
     """Find who to contact in the organisation. topics: one or more of incident_response, ncii_notification,
     legal, data_protection, communications, management."""
     settings = get_settings()
+    # the docstring here is the prompt the model sees; the code below is never seen by the model, so it cannot make up names or numbers.
     with connect(settings.staff_database_url, settings.health_timeout_s) as conn:  # employee_demo, not the law DB
         # Unknown topics simply match nothing (array overlap), so no extra validation is needed.
         rows = conn.execute("SELECT name, role, email, phone, hours FROM demo_staff WHERE topics && %s ORDER BY id",

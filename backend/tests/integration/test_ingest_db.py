@@ -22,8 +22,8 @@ def chunk(n: int, text: str = "text") -> Chunk:
 
 @pytest.fixture
 def conn():
-    cfg = DocumentCard(id=DOC, short_name="ZZTEST", title="Test", version_date=date(2024, 1, 1), pdf="x",
-                       extraction="plain", body_starts_after="x", body_ends_before="y", unit="Section")
+    cfg = DocumentCard(id=DOC, short_name="ZZTEST", title="Test", version_date=date(2024, 1, 1),
+                       unit="Section")
     with db.get_connection() as c:
         db.upsert_document(c, cfg)
         yield c

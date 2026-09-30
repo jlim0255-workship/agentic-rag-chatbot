@@ -1,0 +1,93 @@
+id,category,method,outcome,ms,retrieved,best_similarity
+S01,single_hop,Semantic,full,148.9,pua220:r2:1 act854:s23:1 act854:s35:1 act854:s20:1 pua220:r3:1,0.733
+S01,single_hop,BM25,full,14.3,pua220:r2:1 act854:s23:1 act854:s16:1 act854:s22:1 act854:s35:1,0.733
+S01,single_hop,Hybrid,full,125.3,pua220:r2:1 act854:s23:1 act854:s35:1 act854:s20:1 act854:s22:1,0.733
+S01,single_hop,Hybrid@10,full,122.9,pua220:r2:1 act854:s23:1 act854:s35:1 act854:s20:1 act854:s22:1 act854:s16:1 act854:s24:1 act854:s4:8 pua220:r1:1 act854:s21:1,0.733
+S02,single_hop,Semantic,full,120.9,pua219:r3:1 act854:s22:1 act854:s63:1 pua219:r1:1 pua219:r2:1,0.77
+S02,single_hop,BM25,full,12.7,pua219:r3:1 act854:s22:1 pua219:r1:1 pua219:r2:1 act854:s63:1,0.77
+S02,single_hop,Hybrid,full,134.3,pua219:r3:1 act854:s22:1 pua219:r1:1 act854:s63:1 pua219:r2:1,0.77
+S02,single_hop,Hybrid@10,full,121.3,pua219:r3:1 act854:s22:1 pua219:r1:1 act854:s63:1 pua219:r2:1 act854:s24:1 act854:s35:1 act854:s23:1 act854:s21:1 pua220:r2:1,0.77
+S03,single_hop,Semantic,full,123.0,pua220:r3:1 pua220:r2:1 act854:s23:1 act854:s35:1 pua220:r1:1,0.726
+S03,single_hop,BM25,full,14.0,pua220:r3:1 act854:s4:8 act854:s4:10 act854:s54:1 pua220:r2:1,0.726
+S03,single_hop,Hybrid,full,141.8,pua220:r3:1 pua220:r2:1 act854:s4:8 act854:s35:1 act854:s23:1,0.726
+S03,single_hop,Hybrid@10,full,150.1,pua220:r3:1 pua220:r2:1 act854:s4:8 act854:s35:1 act854:s23:1 act854:s54:1 act854:s20:1 act854:s4:10 act854:s11:1 act854:s63:1,0.726
+S04,single_hop,Semantic,full,118.3,act854:schedule:1 act854:s4:18 act854:s4:7 act854:s18:1 act854:s15:1,0.822
+S04,single_hop,BM25,miss,13.1,act854:s15:1 act854:s16:1 act854:s26:1 act854:s21:1 act854:s25:1,0.822
+S04,single_hop,Hybrid,miss,118.6,act854:s15:1 act854:s16:1 act854:s18:1 act854:s17:1 act854:s21:1,0.822
+S04,single_hop,Hybrid@10,miss,136.3,act854:s15:1 act854:s16:1 act854:s18:1 act854:s17:1 act854:s21:1 act854:s26:1 act854:s4:18 act854:s20:1 act854:s25:1 act854:s4:7,0.822
+S05,single_hop,Semantic,full,124.5,act854:s31:1 act854:s27:1 act854:s29:1 act854:s34:1 act854:s32:1,0.791
+S05,single_hop,BM25,full,13.6,act854:s34:1 act854:s27:1 act854:s32:1 act854:s29:1 act854:s31:1,0.791
+S05,single_hop,Hybrid,full,138.5,act854:s27:1 act854:s34:1 act854:s31:1 act854:s29:1 act854:s32:1,0.791
+S05,single_hop,Hybrid@10,full,140.1,act854:s27:1 act854:s34:1 act854:s31:1 act854:s29:1 act854:s32:1 act854:s33:1 act854:s63:1 act854:s28:1 act854:s30:1 act854:long_title:1,0.791
+S06,single_hop,Semantic,full,151.0,act854:s32:1 act854:s27:1 act854:s31:1 act854:s30:1 act854:s63:1,0.846
+S06,single_hop,BM25,full,15.1,act854:s32:1 act854:s27:1 act854:s4:16 act854:s30:1 act854:long_title:1,0.846
+S06,single_hop,Hybrid,full,126.2,act854:s32:1 act854:s27:1 act854:s30:1 act854:s31:1 act854:s4:16,0.846
+S06,single_hop,Hybrid@10,full,116.4,act854:s32:1 act854:s27:1 act854:s30:1 act854:s31:1 act854:s4:16 act854:s29:1 act854:long_title:1 act854:s34:1 act854:s63:1 act854:s28:1,0.846
+S07,single_hop,Semantic,full,152.9,act854:s3:1 act854:s57:1 act854:s56:1 act854:s1:1 act854:s61:1,0.821
+S07,single_hop,BM25,full,12.7,act854:s3:1 act854:s4:13 act854:s60:1 act854:s4:7 act854:s63:1,0.821
+S07,single_hop,Hybrid,full,120.4,act854:s3:1 act854:s63:1 act854:s60:1 act854:s27:1 act854:s58:1,0.821
+S07,single_hop,Hybrid@10,full,139.8,act854:s3:1 act854:s63:1 act854:s60:1 act854:s27:1 act854:s58:1 act854:s34:1 act854:s59:1 act854:s51:1 act854:s57:1 act854:s4:13,0.821
+S08,single_hop,Semantic,full,119.0,act854:s4:8 act854:s35:1 act854:s63:1 act854:s1:1 pua220:r1:1,0.739
+S08,single_hop,BM25,full,13.6,act854:s4:13 pua220:r2:1 act854:s35:1 pua220:r1:1 act854:s4:8,0.739
+S08,single_hop,Hybrid,full,128.1,act854:s35:1 act854:s4:8 pua220:r1:1 pua220:r2:1 act854:s23:1,0.739
+S08,single_hop,Hybrid@10,full,117.8,act854:s35:1 act854:s4:8 pua220:r1:1 pua220:r2:1 act854:s23:1 act854:s63:1 act854:s38:1 act854:s31:1 act854:s27:1 act854:s4:13,0.739
+S09,single_hop,Semantic,full,118.8,act854:s20:1 act854:s23:1 act854:s18:1 act854:s19:1 act854:s16:1,0.625
+S09,single_hop,BM25,full,12.4,act854:s20:1 act854:s23:1 act854:s17:1 act854:s16:1 act854:s18:1,0.625
+S09,single_hop,Hybrid,full,139.4,act854:s20:1 act854:s23:1 act854:s18:1 act854:s17:1 act854:s16:1,0.625
+S09,single_hop,Hybrid@10,full,125.6,act854:s20:1 act854:s23:1 act854:s18:1 act854:s17:1 act854:s16:1 act854:s19:1 act854:s22:1 act854:s15:1 act854:s4:12 pua220:r2:1,0.625
+S10,single_hop,Semantic,full,120.0,act854:s24:1 act854:s13:1 act854:s35:1 act854:s23:1 act854:s21:1,0.753
+S10,single_hop,BM25,full,14.5,act854:s24:1 act854:s14:1 act854:s4:13 act854:s22:1 act854:s59:1,0.753
+S10,single_hop,Hybrid,full,121.0,act854:s24:1 act854:s35:1 act854:s22:1 act854:s23:1 act854:s21:1,0.753
+S10,single_hop,Hybrid@10,full,144.2,act854:s24:1 act854:s35:1 act854:s22:1 act854:s23:1 act854:s21:1 act854:s12:1 act854:s25:1 act854:s18:1 act854:s33:1 act854:s13:1,0.753
+M01,multi_hop,Semantic,partial,120.8,act854:s23:1 act854:s21:1 pua220:r2:1 act854:s24:1 act854:s26:1,0.552
+M01,multi_hop,BM25,miss,13.2,act854:s16:1 act854:s39:1 act854:s49:1 act854:s20:1 act854:s25:1,0.552
+M01,multi_hop,Hybrid,partial,120.1,act854:s16:1 pua220:r2:1 act854:s23:1 act854:s21:1 act854:s20:1,0.552
+M01,multi_hop,Hybrid@10,partial,135.6,act854:s16:1 pua220:r2:1 act854:s23:1 act854:s21:1 act854:s20:1 act854:s22:1 act854:s17:1 act854:s25:1 act854:s64:1 act854:s35:1,0.552
+M02,multi_hop,Semantic,miss,114.6,act854:s2:1 act854:s56:1 act854:s59:1 act854:s61:1 act854:s55:1,0.508
+M02,multi_hop,BM25,miss,13.9,act854:s49:1 act854:s4:13 act854:s10:1 act854:s11:1 act854:s16:1,0.508
+M02,multi_hop,Hybrid,miss,138.8,act854:s55:1 act854:s49:1 act854:s14:1 act854:s3:1 act854:s2:1,0.508
+M02,multi_hop,Hybrid@10,miss,116.8,act854:s55:1 act854:s49:1 act854:s14:1 act854:s3:1 act854:s2:1 act854:s56:1 act854:s4:13 act854:s59:1 act854:s10:1 act854:s61:1,0.508
+M03,multi_hop,Semantic,full,97.3,pua219:r3:1 act854:s22:1 act854:s63:1 act854:s64:1 act854:s21:1,0.624
+M03,multi_hop,BM25,miss,12.4,act854:s26:1 act854:s51:1 act854:s21:1 act854:s25:1 act854:s4:13,0.624
+M03,multi_hop,Hybrid,partial,121.1,act854:s21:1 act854:s26:1 act854:s22:1 act854:s35:1 act854:s24:1,0.624
+M03,multi_hop,Hybrid@10,full,118.2,act854:s21:1 act854:s26:1 act854:s22:1 act854:s35:1 act854:s24:1 act854:s20:1 act854:s25:1 act854:s32:1 act854:s23:1 pua219:r3:1,0.624
+M04,multi_hop,Semantic,partial,101.0,act854:s63:1 act854:s22:1 pua219:r3:1 act854:s55:1 pua219:r2:1,0.57
+M04,multi_hop,BM25,partial,14.0,act854:s22:1 pua219:r3:1 pua219:r1:1 act854:s63:1 pua219:r2:1,0.57
+M04,multi_hop,Hybrid,partial,101.1,act854:s22:1 act854:s63:1 pua219:r3:1 pua219:r2:1 pua219:r1:1,0.57
+M04,multi_hop,Hybrid@10,full,97.5,act854:s22:1 act854:s63:1 pua219:r3:1 pua219:r2:1 pua219:r1:1 act854:s23:1 act854:s27:1 act854:s34:1 act854:s35:1 act854:s55:1,0.57
+M05,multi_hop,Semantic,full,106.3,act854:s26:1 act854:s21:1 act854:s25:1 act854:s63:1 act854:s16:1,0.554
+M05,multi_hop,BM25,miss,18.7,act854:s39:1 act854:s41:1 act854:s59:1 act854:s14:1 act854:s56:1,0.554
+M05,multi_hop,Hybrid,partial,97.1,act854:s63:1 act854:s25:1 act854:s16:1 act854:s18:1 act854:s10:1,0.554
+M05,multi_hop,Hybrid@10,full,115.8,act854:s63:1 act854:s25:1 act854:s16:1 act854:s18:1 act854:s10:1 act854:s26:1 act854:s39:1 act854:s21:1 act854:s41:1 act854:s59:1,0.554
+M06,multi_hop,Semantic,full,116.3,act854:s58:1 act854:s63:1 act854:s35:1 act854:s59:1 act854:s23:1,0.58
+M06,multi_hop,BM25,partial,12.9,act854:s5:1 pua220:r2:1 act854:s35:1 act854:s49:1 act854:s50:1,0.58
+M06,multi_hop,Hybrid,full,102.4,act854:s35:1 act854:s58:1 act854:s23:1 act854:s63:1 pua220:r2:1,0.58
+M06,multi_hop,Hybrid@10,full,120.0,act854:s35:1 act854:s58:1 act854:s23:1 act854:s63:1 pua220:r2:1 act854:s24:1 act854:s55:1 pua220:r1:1 act854:s4:8 act854:s5:1,0.58
+M07,multi_hop,Semantic,partial,131.4,act854:s31:1 act854:s33:1 act854:s27:1 act854:s30:1 act854:s29:1,0.738
+M07,multi_hop,BM25,partial,14.1,act854:s27:1 act854:s56:1 act854:s63:1 act854:s30:1 act854:s32:1,0.738
+M07,multi_hop,Hybrid,partial,127.5,act854:s27:1 act854:s30:1 act854:s31:1 act854:s33:1 act854:s29:1,0.738
+M07,multi_hop,Hybrid@10,partial,143.9,act854:s27:1 act854:s30:1 act854:s31:1 act854:s33:1 act854:s29:1 act854:s34:1 act854:s56:1 act854:s63:1 act854:s32:1 act854:s28:1,0.738
+M08,multi_hop,Semantic,full,121.9,act854:s60:1 act854:s35:1 act854:s52:1 act854:s13:1 act854:s23:1,0.601
+M08,multi_hop,BM25,partial,13.0,act854:s60:1 act854:s33:1 act854:s29:1 act854:s35:1 act854:s32:1,0.601
+M08,multi_hop,Hybrid,full,148.8,act854:s60:1 act854:s35:1 act854:s33:1 act854:s23:1 act854:s14:1,0.601
+M08,multi_hop,Hybrid@10,full,121.9,act854:s60:1 act854:s35:1 act854:s33:1 act854:s23:1 act854:s14:1 act854:s24:1 act854:s4:8 act854:s54:1 act854:s52:1 act854:s29:1,0.601
+M09,multi_hop,Semantic,full,120.7,act854:s19:1 act854:s4:5 act854:s18:1 act854:s17:1 act854:s4:6,0.527
+M09,multi_hop,BM25,miss,12.6,act854:s58:1 act854:s27:1 act854:s14:1 act854:s22:1 act854:s20:1,0.527
+M09,multi_hop,Hybrid,partial,119.7,act854:s23:1 act854:s17:1 act854:s22:1 act854:s20:1 act854:s18:1,0.527
+M09,multi_hop,Hybrid@10,full,125.4,act854:s23:1 act854:s17:1 act854:s22:1 act854:s20:1 act854:s18:1 act854:s21:1 act854:s16:1 act854:s19:1 act854:s58:1 act854:s4:5,0.527
+M10,multi_hop,Semantic,full,145.1,act854:s27:1 act854:s32:1 act854:s31:1 act854:s34:1 act854:s28:1,0.66
+M10,multi_hop,BM25,full,12.6,act854:s27:1 act854:s39:1 act854:s32:1 act854:s4:13 act854:s63:1,0.66
+M10,multi_hop,Hybrid,full,119.6,act854:s27:1 act854:s32:1 act854:s34:1 act854:s63:1 act854:s31:1,0.66
+M10,multi_hop,Hybrid@10,full,120.1,act854:s27:1 act854:s32:1 act854:s34:1 act854:s63:1 act854:s31:1 act854:s29:1 act854:s30:1 act854:s56:1 act854:s39:1 act854:s4:13,0.66
+A01,ambiguous,Semantic,full,129.7,act854:s1:1 pua220:r1:1 pua219:r1:1 act854:s63:1 act854:s3:1,0.676
+A01,ambiguous,BM25,partial,12.9,pua220:r1:1 pua219:r1:1 act854:s4:13 act854:s64:1 act854:s59:1,0.676
+A01,ambiguous,Hybrid,full,124.2,pua220:r1:1 pua219:r1:1 act854:s1:1 act854:s55:1 act854:s64:1,0.676
+A01,ambiguous,Hybrid@10,full,132.5,pua220:r1:1 pua219:r1:1 act854:s1:1 act854:s55:1 act854:s64:1 act854:s38:1 act854:s4:13 act854:s63:1 act854:s3:1 act854:s59:1,0.676
+A03,ambiguous,Semantic,partial,123.5,act854:s55:1 act854:s23:1 act854:s32:1 pua220:r2:1 act854:s35:1,0.643
+A03,ambiguous,BM25,miss,13.1,act854:s16:1 act854:s22:1 act854:s51:1 act854:s10:1 act854:s6:1,0.643
+A03,ambiguous,Hybrid,partial,121.3,act854:s23:1 act854:s51:1 pua220:r2:1 act854:s48:1 act854:s35:1,0.643
+A03,ambiguous,Hybrid@10,partial,136.5,act854:s23:1 act854:s51:1 pua220:r2:1 act854:s48:1 act854:s35:1 act854:s3:1 act854:s38:1 act854:s55:1 act854:s16:1 act854:s22:1,0.643
+A05,ambiguous,Semantic,miss,129.8,act854:s3:1 act854:s2:1 act854:s1:1 act854:s61:1 act854:s57:1,0.624
+A05,ambiguous,BM25,miss,15.0,act854:s26:1 act854:s54:1 act854:s16:1 act854:s39:1 act854:s21:1,0.624
+A05,ambiguous,Hybrid,miss,125.3,act854:s1:1 act854:s4:4 act854:s59:1 act854:s3:1 act854:s26:1,0.624
+A05,ambiguous,Hybrid@10,miss,135.2,act854:s1:1 act854:s4:4 act854:s59:1 act854:s3:1 act854:s26:1 act854:s2:1 act854:s54:1 act854:s16:1 act854:s61:1 act854:s39:1,0.624
