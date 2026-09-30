@@ -1,4 +1,4 @@
-"""Yes/no sufficiency grader (experiment): yes -> generate, no -> rewrite aimed at `missing`."""
+"""Yes/no sufficiency grader: yes -> generate, no -> rewrite aimed at `missing`."""
 from __future__ import annotations
 
 from tests.fakes import FakeLLM, chunk, final, run

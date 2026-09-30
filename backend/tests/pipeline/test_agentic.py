@@ -120,7 +120,7 @@ def test_partial_evidence_generates_and_names_the_missing_part(settings: Setting
     assert "could not be found in the documents" in prompt and "- licence fee amount" in prompt
 
 
-# (Experiment branch: the needs grader's "verified evidence is kept" test is replaced by
+# (The needs grader's "verified evidence is kept" test is replaced by
 #  test_grade.py::test_known_tradeoff_a_single_question_never_judged_sufficient_is_not_found.)
 
 

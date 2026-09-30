@@ -52,7 +52,7 @@ class FakeLLM:
 
 
 def grade(relevant: list[str], not_relevant: list[str] = (), missing: str = "") -> dict:
-    """Yes/no grader reply (experiment): sufficient when any chunk is relevant and nothing is missing.
+    """Yes/no grader reply: sufficient when any chunk is relevant and nothing is missing.
     The signature is kept from the needs grader so the routing tests read the same."""
     sufficient = bool(relevant) and not missing
     return {"sufficient": sufficient, "missing": "" if sufficient else (missing or "the answer")}

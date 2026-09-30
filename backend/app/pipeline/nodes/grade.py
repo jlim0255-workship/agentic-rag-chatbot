@@ -1,10 +1,11 @@
-"""Grade node (EXPERIMENT, branch exp/yesno-grader): a plain sufficiency check.
+"""Grade node: a plain sufficiency check (replaces the needs-and-quotes grader, compared in eval/reports
+20260930-2212 vs 20260930-2221).
 
 One fast-model call per sub-query: are the retrieved passages enough to answer it, yes or no, and if not,
 what is missing (a short note that steers Rewrite). Nothing in the reply is checked by code: a "yes" is
 taken at its word. Yes -> the sub-query is answered and its retrieved chunks count as relevant (they go
 first to the writer); no -> Rewrite, while retries are left. The grader never removes evidence from the
-writer. Compare with the needs-and-quotes grader on main (eval/reports).
+writer. Known trade-off: a question never judged sufficient ends "not found" (no partial answer).
 """
 from __future__ import annotations
 
