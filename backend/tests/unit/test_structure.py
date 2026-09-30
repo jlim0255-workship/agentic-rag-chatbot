@@ -1,18 +1,18 @@
-"""Section detection on small hand-built line lists (no PDF needed)."""
+"""Unit detection against an outline, on small hand-built line lists (no PDF needed)."""
 from __future__ import annotations
 
 import pytest
 
-from app.ingest.models import ChecklistEntry, Line
-from app.ingest.structure import ChecklistMismatch, detect_units, title_case
+from app.ingest.models import Line, OutlineEntry
+from app.ingest.structure import OutlineMismatch, detect_units, title_case
 
 
 def lines(*texts: str, page: int = 1) -> list[Line]:
     return [Line(page=page, text=t) for t in texts]
 
 
-def toc(*pairs: tuple[str, str]) -> list[ChecklistEntry]:
-    return [ChecklistEntry(unit=u, heading=h) for u, h in pairs]
+def row(unit: str, heading: str, part: str | None = None, part_title: str | None = None) -> OutlineEntry:
+    return OutlineEntry(part=part, part_title=part_title, unit=unit, heading=heading)
 
 
 BODY = lines(
@@ -26,70 +26,73 @@ BODY = lines(
     "2. The Chief Executive may designate under section",
     "17. of the Act.",  # a wrapped cross-reference that looks like a unit start
 )
+OUTLINE = [row("1", "Short title", "I", "Preliminary"),
+           row("2", "Designation of national critical information infrastructure entity", "II",
+               "National Cyber Security Committee")]
 
 
 def test_headings_parts_and_wrapped_lines() -> None:
-    body = BODY[:-1] + lines("an entity.")
-    units = detect_units(body, toc(("1", "Short title"),
-                                   ("2", "Designation of national critical information infrastructure entity")),
-                         has_parts=True)
+    units = detect_units(BODY[:-1] + lines("an entity."), OUTLINE)
     assert [u.unit for u in units] == ["1", "2"]
     assert (units[0].part, units[0].part_title) == ("I", "Preliminary")
-    # Part II block is cut out of unit 1's lines and applies to unit 2; its title wraps over 2 lines
+    # Part II block is cut out of unit 1's lines; its title wraps over 2 lines
     assert [l.text for l in units[0].lines] == ["1. (1) This Act may be cited as the Test Act.",
                                                 "(2) It comes into operation on a date."]
     assert (units[1].part, units[1].part_title) == ("II", "National Cyber Security Committee")
-    assert units[1].heading == "Designation of national critical information infrastructure entity"
     assert units[1].lines[0].text.startswith("2. ")
 
 
 def test_unclaimed_unit_line_is_extra_unit() -> None:
-    with pytest.raises(ChecklistMismatch, match="extra unit"):
-        detect_units(BODY, toc(("1", "Short title"),
-                               ("2", "Designation of national critical information infrastructure entity")),
-                     has_parts=True)
+    with pytest.raises(OutlineMismatch, match="extra unit"):
+        detect_units(BODY, OUTLINE)
+
+
+def test_part_title_must_match_outline() -> None:
+    wrong = [OUTLINE[0], row(OUTLINE[1].unit, OUTLINE[1].heading, "II", "Some Other Title")]
+    with pytest.raises(OutlineMismatch, match="differs from outline"):
+        detect_units(BODY[:-1] + lines("an entity."), wrong)
+
+
+def test_part_line_where_outline_has_no_new_part() -> None:
+    body = lines("First", "1. Text.", "Part II", "SECOND PART", "Second", "2. Text.")
+    with pytest.raises(OutlineMismatch, match="not where the outline starts a Part"):
+        detect_units(body, [row("1", "First"), row("2", "Second")])
 
 
 def test_missing_unit() -> None:
-    body = lines("Short title", "1. Text.")
-    with pytest.raises(ChecklistMismatch, match="missing unit 2"):
-        detect_units(body, toc(("1", "Short title"), ("2", "Other")), has_parts=False)
+    with pytest.raises(OutlineMismatch, match="missing unit 2"):
+        detect_units(lines("Short title", "1. Text."), [row("1", "Short title"), row("2", "Other")])
 
 
-def test_heading_differs_from_checklist() -> None:
-    body = lines("Short title and commencement", "1. Text.")
-    with pytest.raises(ChecklistMismatch, match="heading"):
-        detect_units(body, toc(("1", "Short title")), has_parts=False)
+def test_heading_differs_from_outline() -> None:
+    with pytest.raises(OutlineMismatch, match="heading"):
+        detect_units(lines("Short title and commencement", "1. Text."), [row("1", "Short title")])
 
 
 def test_out_of_order_is_caught() -> None:
-    body = lines("Second", "2. Text.", "First", "1. Text.")
-    with pytest.raises(ChecklistMismatch):
-        detect_units(body, toc(("1", "First"), ("2", "Second")), has_parts=False)
+    with pytest.raises(OutlineMismatch):
+        detect_units(lines("Second", "2. Text.", "First", "1. Text."), [row("1", "First"), row("2", "Second")])
 
 
 def test_heading_ending_with_full_stop() -> None:
-    body = lines("List of seized objects, etc.", "41. (1) Text.")
-    units = detect_units(body, toc(("41", "List of seized objects, etc.")), has_parts=False)
+    units = detect_units(lines("List of seized objects, etc.", "41. (1) Text."), [row("41", "List of seized objects, etc.")])
     assert units[0].heading == "List of seized objects, etc."
 
 
 def test_letter_suffix_unit_number() -> None:
-    body = lines("First", "12. Text.", "Inserted", "12A. Text.")
-    units = detect_units(body, toc(("12", "First"), ("12A", "Inserted")), has_parts=False)
+    units = detect_units(lines("First", "12. Text.", "Inserted", "12A. Text."), [row("12", "First"), row("12A", "Inserted")])
     assert [u.unit for u in units] == ["12", "12A"]
 
 
 def test_unexpected_lead_in_text() -> None:
-    body = lines("Some stray line", "First", "1. Text.")
-    with pytest.raises(ChecklistMismatch, match="before the first unit"):
-        detect_units(body, toc(("1", "First")), has_parts=False)
+    with pytest.raises(OutlineMismatch, match="before the first unit"):
+        detect_units(lines("Some stray line", "First", "1. Text."), [row("1", "First")])
 
 
 def test_part_line_without_caps_title() -> None:
     body = lines("First", "1. Text.", "Part II", "Second", "2. Text.")
-    with pytest.raises(ChecklistMismatch, match="Part II"):
-        detect_units(body, toc(("1", "First"), ("2", "Second")), has_parts=True)
+    with pytest.raises(OutlineMismatch, match="Part II"):
+        detect_units(body, [row("1", "First"), row("2", "Second", "II", "Two")])
 
 
 def test_title_case_keeps_small_words_lower() -> None:

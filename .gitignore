@@ -220,3 +220,4 @@ __marimo__/
 # Project
 data/raw/*.pdf
 data/chunks.jsonl
+data/work/

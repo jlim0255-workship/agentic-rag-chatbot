@@ -1,0 +1,20 @@
+# Document card: facts about PUA-219.pdf that the parser cannot guess, read off the PDF by hand.
+# Every "line" value is copied exactly from data/work/pua219.lines.txt (written by the extract step).
+# The file name (pua219) is the document id and the chunk id prefix: pua219:r3:1.
+
+title        = "Cyber Security (Period for Cyber Security Risk Assessment and Audit) Regulations 2024 [P.U.(A) 219/2024], made under the Cyber Security Act 2024"
+short_name   = "PUA219"
+version_date = 2024-08-26                # commencement date, regulation 1(2)
+pdf          = "../raw/PUA-219.pdf"      # English-only crop of the gazette (printed page 3)
+extraction   = "layout"                  # the default mode splits words in these gazette PDFs
+page_offset  = 2                         # PDF page 1 is printed page 3
+
+headers = ["P.U. (A) 219"]               # first line of the page
+footers = ["{page}"]                     # printed page number, last line of the page
+
+# No arrangement page: the outline is generated from the body (the heading line above each "N. ").
+body_starts_after = "[Act 854], the Minister makes the following regulations:"
+body_ends_before  = "Made 16 August 2024"
+
+unit        = "Regulation"               # chunk ids use "r": pua219:r2:1
+definitions = ["2"]                      # reg 2 Interpretation: one definition, written inline

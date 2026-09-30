@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from app.config import Settings
 
 REQUIRED = {"EMBED_MODEL": "qwen3-embedding:0.6b", "EMBED_DIM": "1024",
-            "DATABASE_URL": "postgresql://u:p@localhost:5432/db",
+            "DATABASE_URL": "postgresql://u:p@localhost:5432/db", "STAFF_DATABASE_URL": "postgresql://u:p@localhost:5432/staff",
             "TOP_K_VECTOR": "20", "TOP_K_BM25": "20", "TOP_K_FINAL": "5",
             "LLM_CALL_TIMEOUT_S": "90", "QUESTION_BUDGET_S": "300"}
 
@@ -36,7 +36,7 @@ def test_prd_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
     s = Settings(_env_file=None)
     assert (s.fast_model, s.answer_model) == ("gemma4:e2b", "gemma4:e2b")
     assert s.ollama_base_url == "http://host.docker.internal:11434"
-    assert (s.rrf_k, s.max_retries, s.max_regen) == (60, 2, 1)
+    assert (s.rrf_k, s.max_retries) == (60, 2)
 
 
 @pytest.mark.parametrize("missing", sorted(REQUIRED))

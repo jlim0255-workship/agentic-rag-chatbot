@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     embed_timeout_s: float = Field(default=120, gt=0)  # per embed request; first call also loads the model
 
     database_url: str
+    staff_database_url: str  # separate employee_demo database for the staff tool (new_prd.md)
 
     # Retrieval (PRD 9). No defaults: set in .env (keep TOP_K_FINAL small for 4 GB VRAM).
     top_k_vector: int = Field(gt=0)
@@ -47,7 +48,10 @@ class Settings(BaseSettings):
     # Agent limits (PRD 10.4)
     rrf_k: int = Field(default=60, gt=0)
     max_retries: int = Field(default=2, ge=0)
-    max_regen: int = Field(default=1, ge=0)
+    max_sub_queries: int = Field(default=3, gt=0)
+    writer_max_chunks: int = Field(default=10, gt=0)  # agentic: verified chunks + other retrieved context
+    # Rewrite drift gate: reject variants less similar than this to their sub-query. 0 = off (calibrate first).
+    rewrite_min_similarity: float = Field(default=0.0, ge=0, le=1)
 
     # How long /health waits for Postgres or Ollama before reporting them down.
     health_timeout_s: float = Field(default=3.0, gt=0)

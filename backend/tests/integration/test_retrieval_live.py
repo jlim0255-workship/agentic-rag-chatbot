@@ -39,3 +39,15 @@ def test_one_real_question_end_to_end() -> None:
     assert names[-4:] == ["answer", "citations", "metrics", "done"], r.text
     citations = json.loads(events[-3][1].removeprefix("data: "))
     assert "act854:s23:1" in {c["chunk_id"] for c in citations}
+
+
+def test_single_search_methods(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.llm import ollama
+    s = get_settings()
+    with connect(s.database_url, s.health_timeout_s) as conn:
+        vector = retrieve(conn, s, "penalty for not notifying an incident", method="vector")
+        wide = retrieve(conn, s, "penalty for not notifying an incident", top_k=10)
+        monkeypatch.setattr(ollama, "embed", lambda *a, **k: (_ for _ in ()).throw(AssertionError("no embed")))
+        bm25 = retrieve(conn, s, "penalty for not notifying an incident", method="bm25")
+    assert len(vector) == len(bm25) == s.top_k_final and len(wide) == 10
+    assert vector[0].score > vector[-1].score

@@ -11,6 +11,8 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "httpx>=0.27",
     "pypdf>=4.2",
+    "langgraph>=1.0",
+    "langchain-ollama>=1.0",  # ChatOllama.bind_tools for the staff-directory tool (new_prd.md)
 ]
 
 [project.optional-dependencies]
@@ -25,5 +27,6 @@ include = ["app*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 markers = ["integration: needs real Postgres and Ollama running"]
 addopts = "-m 'not integration'"

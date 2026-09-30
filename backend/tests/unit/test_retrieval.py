@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from app.graph.generate import build_prompt, cited_ids
+from app.pipeline.core import cited_ids
+from app.pipeline.nodes.generate import build_prompt
 from app.retrieval.bm25 import bm25_scores, tokenize
 from app.retrieval.search import Retrieved, rrf
 

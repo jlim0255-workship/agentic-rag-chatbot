@@ -7,7 +7,7 @@ import pytest
 
 from app.config import get_settings
 from app.ingest import db
-from app.ingest.models import Chunk, DocumentConfig
+from app.ingest.models import Chunk, DocumentCard
 
 pytestmark = pytest.mark.integration
 
@@ -22,11 +22,8 @@ def chunk(n: int, text: str = "text") -> Chunk:
 
 @pytest.fixture
 def conn():
-    cfg = DocumentConfig(id=DOC, short_name="ZZTEST", title="Test", source_url=None, version_date=date(2024, 1, 1),
-                         pdf_path="x", extraction_mode="plain", body_pages=(1, 1), page_offset=0,
-                         strip_top_patterns=[], strip_bottom_patterns=[], body_start_after="x",
-                         body_end_before="y", unit_label="Section", id_prefix="s", has_parts=False,
-                         definition_units=[], long_title=None, schedule=None, checklist_path="x")
+    cfg = DocumentCard(id=DOC, short_name="ZZTEST", title="Test", version_date=date(2024, 1, 1), pdf="x",
+                       extraction="plain", body_starts_after="x", body_ends_before="y", unit="Section")
     with db.get_connection() as c:
         db.upsert_document(c, cfg)
         yield c

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import Literal
 
 import psycopg
 from psycopg.rows import dict_row
@@ -15,6 +16,9 @@ from app.retrieval.bm25 import bm25_scores
 # Qwen3-Embedding wants an instruction on the query side only (documents were embedded without one).
 QUERY_INSTRUCTION = ("Instruct: Given a question about Malaysian cyber security law, "
                      "retrieve the legal provisions that answer it\nQuery: ")
+
+
+Method = Literal["hybrid", "vector", "bm25"]
 
 
 class Filters(BaseModel):
@@ -32,7 +36,8 @@ class Retrieved(BaseModel):
     page_start: int
     page_end: int
     text: str
-    score: float  # fused RRF score
+    score: float  # fused RRF score: depends on rank only, so it cannot say how relevant a chunk is
+    similarity: float | None = None  # cosine similarity to the query (None for BM25-only searches)
 
     @property
     def label(self) -> str:
@@ -57,15 +62,24 @@ def rrf(rankings: list[list[str]], k: int) -> list[tuple[str, float]]:
 
 
 def retrieve(conn: psycopg.Connection, settings: Settings, query: str, filters: Filters | None = None,
-             timeout_s: float | None = None) -> list[Retrieved]:
-    """Top TOP_K_FINAL chunks for the query. Filters apply to both searches, before fusion.
+             timeout_s: float | None = None, method: Method = "hybrid",
+             top_k: int | None = None) -> list[Retrieved]:
+    """Top TOP_K_FINAL (or top_k) chunks for the query. Filters apply to both searches, before fusion.
+
+    `method` exists for the retrieval comparison in the evaluation (PRD 13); the app always uses hybrid.
+    With one search, RRF simply keeps that search's order.
 
     Exact cosine search in SQL (no HNSW): with ~100 chunks it is instant, and approximate
     indexes can return too few rows when combined with a WHERE filter.
     """
     filters = filters or Filters()
-    [qvec] = ollama.embed(settings.ollama_base_url, settings.embed_model, [QUERY_INSTRUCTION + query],
-                          timeout_s or settings.llm_call_timeout_s)
+    qvec = None
+    # Step 1: embed the user query
+    if method != "bm25":
+        [qvec] = ollama.embed(settings.ollama_base_url, settings.embed_model, [QUERY_INSTRUCTION + query],
+                              timeout_s or settings.llm_call_timeout_s)
+
+    # Step 2: fetch the candidate chunks from Postgres, with their BM25 scores and vector distances
     with conn.cursor(row_factory=dict_row) as cur:
         rows = cur.execute(
             """
@@ -75,14 +89,21 @@ def retrieve(conn: psycopg.Connection, settings: Settings, query: str, filters: 
             WHERE (cardinality(%(docs)s::text[]) = 0 OR d.short_name = ANY(%(docs)s))
               AND (cardinality(%(parts)s::text[]) = 0 OR c.part = ANY(%(parts)s))
             """,
-            {"q": to_vector_literal(qvec), "docs": filters.documents, "parts": filters.parts},
+            {"q": to_vector_literal(qvec) if qvec else None, "docs": filters.documents, "parts": filters.parts},
         ).fetchall()
 
-    with_vectors = [r for r in rows if r["distance"] is not None]
-    by_vector = sorted(with_vectors, key=lambda r: r["distance"])[:settings.top_k_vector]
-    scored = zip(bm25_scores(query, [r["contextual_text"] for r in rows]), rows)
-    by_bm25 = [r for s, r in sorted(scored, key=lambda x: x[0], reverse=True) if s > 0][:settings.top_k_bm25]
+    with_vectors = [r for r in rows if r["distance"] is not None] # check if all vectors have distance
+    by_vector = sorted(with_vectors, key=lambda r: r["distance"])[:settings.top_k_vector] # winners by vector results by distance (smallest first) take top K
+    scored = zip(bm25_scores(query, [r["contextual_text"] for r in rows]), rows) # BM25 gives each row a score for how well its words match the question's words. Bigger means a better match. zip then pairs each score with its row:
+    by_bm25 = [r for s, r in sorted(scored, key=lambda x: x[0], reverse=True) if s > 0][:settings.top_k_bm25] # winners by BM25 results (biggest first) take top K
 
-    fused = rrf([[r["id"] for r in by_vector], [r["id"] for r in by_bm25]], settings.rrf_k)
+    rankings = []
+    if method != "bm25":
+        rankings.append([r["id"] for r in by_vector])
+    if method != "vector":
+        rankings.append([r["id"] for r in by_bm25])
+    fused = rrf(rankings, settings.rrf_k)
     row_by_id = {r["id"]: r for r in rows}
-    return [Retrieved(**row_by_id[id_], score=score) for id_, score in fused[:settings.top_k_final]]
+    return [Retrieved(**row_by_id[id_], score=score,
+                      similarity=None if row_by_id[id_]["distance"] is None else 1 - row_by_id[id_]["distance"])
+            for id_, score in fused[:top_k or settings.top_k_final]]

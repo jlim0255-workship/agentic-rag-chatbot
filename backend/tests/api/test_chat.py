@@ -10,18 +10,14 @@ from fastapi.testclient import TestClient
 
 from app.api import main as main_module
 from app.config import Settings, get_settings
-from app.graph import traditional
 from app.llm import ollama
+from app.pipeline import core, flow
 from app.retrieval import search
+from tests.fakes import FakeToolModel, fake_connection
 
 CHUNKS = [search.Retrieved(id="act854:s23:1", short_name="ACT854", section="23", subsection=None,
                            heading="Duty to give notification", part="IV", page_start=26, page_end=26,
                            text="(2) ... fine not exceeding five hundred thousand ringgit ...", score=0.03)]
-
-
-@contextmanager
-def fake_connection(*_args, **_kwargs):
-    yield object()
 
 
 def parse_sse(body: str) -> list[tuple[str, object]]:
@@ -34,7 +30,7 @@ def parse_sse(body: str) -> list[tuple[str, object]]:
 
 @pytest.fixture
 def client(settings: Settings, monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(traditional.connection, "connect", fake_connection)
+    monkeypatch.setattr("app.pipeline.nodes.retrieve.connection.connect", fake_connection)
     monkeypatch.setattr(search, "retrieve", lambda conn, s, q, filters=None, timeout_s=None: list(CHUNKS))
     monkeypatch.setattr(ollama, "chat", lambda *a, **k: "The fine is up to RM500,000 [act854:s23:1(2)].")
     main_module.app.dependency_overrides[get_settings] = lambda: settings
@@ -55,7 +51,7 @@ def test_event_order_and_exactly_one_answer(client: TestClient) -> None:
     assert names == ["trace"] * 4 + ["answer", "citations", "metrics", "done"]
     answer = dict(events)["answer"]
     assert "[act854:s23:1(2)]" in answer["text"]
-    assert answer["label"] == traditional.UNCHECKED_LABEL  # never "verified"
+    assert answer["label"] == flow.UNCHECKED_LABEL  # never "verified"
     assert dict(events)["citations"] == [{"chunk_id": "act854:s23:1", "document": "ACT854",
                                          "section": "ACT854 s23", "page": "26"}]
     metrics = dict(events)["metrics"]
@@ -65,7 +61,8 @@ def test_event_order_and_exactly_one_answer(client: TestClient) -> None:
 
 def test_retrieve_trace_carries_chunk_ids_and_scores(client: TestClient) -> None:
     retrieve_end = [d for n, d in ask(client) if n == "trace" and d["node"] == "retrieve" and d["status"] == "end"][0]
-    assert retrieve_end["data"]["chunks"] == [{"id": "act854:s23:1", "score": 0.03}]
+    assert retrieve_end["data"]["queries"] == [{"query": "What is the penalty?",
+                                                "chunks": [{"id": "act854:s23:1", "score": 0.03}]}]
 
 
 def test_cited_id_not_in_retrieved_is_not_listed(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -77,7 +74,7 @@ def test_cited_id_not_in_retrieved_is_not_listed(client: TestClient, monkeypatch
 def test_not_found(client: TestClient, monkeypatch: pytest.MonkeyPatch, reply: str) -> None:
     monkeypatch.setattr(ollama, "chat", lambda *a, **k: reply)
     events = dict(ask(client, "What is the capital of France?"))
-    assert events["answer"]["text"] == traditional.NOT_FOUND_TEXT
+    assert events["answer"]["text"] == core.NOT_FOUND_TEXT
     assert events["citations"] == []
     assert events["done"] == {"status": "not_found"}
 
@@ -115,9 +112,24 @@ def test_question_budget_used_up_before_generation(client: TestClient, settings:
     assert events[-1] == ("done", {"status": "timeout"})
 
 
-def test_agentic_mode_not_built_yet(client: TestClient) -> None:
+def test_agentic_mode_streams_in_prd_order(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("app.pipeline.nodes.planner.connection.connect", fake_connection)
+    monkeypatch.setattr("app.pipeline.nodes.planner.allowed_filters", lambda conn: ([("ACT854", "Act")], []))
+    monkeypatch.setattr("app.pipeline.nodes.tool_agent.ChatOllama", lambda **_k: FakeToolModel())
+    plan = json.dumps({"sub_queries": [{"query": "penalty for not notifying"}]})
+    grade = json.dumps({"needs": [{"need": "penalty", "chunk_id": "act854:s23:1",
+                                   "quote": "fine not exceeding five hundred thousand ringgit"}]})
+    check = json.dumps({"supported": [True]})
+    monkeypatch.setattr(ollama, "chat", lambda *a, format=None, **k:
+                        ((plan if "sub_queries" in format["properties"] else
+                          check if "supported" in format["properties"] else grade) if format
+                         else "The fine is up to RM500,000 [act854:s23:1]."))
     events = ask(client, mode="agentic")
-    assert events == [("error", {"message": "Agentic mode is not built yet (milestone M4); use traditional mode."})]
+    names = [n for n, _ in events]
+    assert set(names[:-4]) == {"trace"} and names[-4:] == ["answer", "citations", "metrics", "done"]
+    assert dict(events)["done"] == {"status": "answered"}
+    assert dict(events)["metrics"]["llm_calls"] == 5  # plan, tool choice, grade, generate, grounding check
+    assert dict(events)["answer"]["label"] == "Passed automated source check"
 
 
 def test_empty_question_rejected(client: TestClient) -> None:
@@ -164,3 +176,25 @@ def test_get_chunk(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
 def test_get_chunk_404(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(main_module.connection, "connect", fake_db_returning(None))
     assert client.get("/chunks/act854:s99:1").status_code == 404
+
+
+def test_no_chunks_means_not_found_without_llm_call(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(search, "retrieve", lambda *a, **k: [])
+    def must_not_call(*_a, **_k):
+        raise AssertionError("the model must not be called without sources")
+    monkeypatch.setattr(ollama, "chat", must_not_call)
+    events = dict(ask(client))
+    assert events["answer"]["text"] == core.NOT_FOUND_TEXT
+    assert events["done"] == {"status": "not_found"}
+    assert events["metrics"]["llm_calls"] == 0
+
+
+def test_every_event_is_logged_with_one_request_id(client: TestClient, caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level("INFO", logger="app.api.main"):
+        ask(client)
+    lines = [r.getMessage() for r in caplog.records if r.name == "app.api.main"]
+    rid = lines[0].split("]")[0]
+    assert all(line.startswith(rid) for line in lines)
+    assert "question: What is the penalty?" in lines[0]
+    assert any("retrieve end: 1 chunks" in line for line in lines)
+    assert any("done: {'status': 'answered'}" in line for line in lines)

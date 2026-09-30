@@ -1,32 +1,44 @@
-"""The real corpus against its checklists (PRD 8.4). Skipped if the PDFs are not in data/raw/."""
+"""The real corpus against its committed outlines (PRD 8.4). Skipped if the PDFs are not in data/raw/."""
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
 
 import pytest
 
 from app.config import REPO_ROOT
-from app.ingest.run_chunk import chunk_document, load_checklist, load_configs, sanity_check
+from app.ingest.outline import read_markdown
+from app.ingest.run_chunk import chunk_document, load_cards, outline_path, sanity_check
 
 CORPUS = REPO_ROOT / "data" / "corpus"
-CONFIGS = {c.id: c for c in load_configs(CORPUS)}
+CARDS = {c.id: c for c in load_cards(CORPUS)}
+
+# sha256 of the chunks as JSON lines (LF endings; all documents, in id order). The chunks the embeddings and the
+# evaluation were built on; if it changes, re-embed and re-run the evaluation, then update it here.
+CHUNKS_SHA256 = "27b1f16f41ae745644f149927d8fbea89475947931a360fec3761572e7a32118"
 
 pytestmark = pytest.mark.skipif(
-    not all(Path(c.pdf_path).exists() for c in CONFIGS.values()),
+    not all(Path(c.pdf).exists() for c in CARDS.values()),
     reason="source PDFs not in data/raw/ (they are not committed)",
 )
 
 
 @pytest.fixture(scope="module")
 def chunks() -> dict[str, list]:
-    return {doc_id: chunk_document(cfg) for doc_id, cfg in CONFIGS.items()}
+    return {doc_id: chunk_document(card, CORPUS) for doc_id, card in CARDS.items()}
 
 
-def test_every_checklist_unit_found_in_order(chunks) -> None:
-    for doc_id, cfg in CONFIGS.items():
-        expected = [e.unit for e in load_checklist(cfg.checklist_path)]
+def test_every_outline_unit_found_in_order(chunks) -> None:
+    for doc_id, card in CARDS.items():
+        expected = [e.unit for e in read_markdown(outline_path(CORPUS, card))]
         found = list(dict.fromkeys(c.section for c in chunks[doc_id] if c.section not in ("long_title", "Schedule")))
         assert found == expected, doc_id
+
+
+def test_chunks_unchanged_snapshot(chunks) -> None:
+    dump = "".join(json.dumps(c.model_dump(), ensure_ascii=False) + "\n" for doc in sorted(chunks) for c in chunks[doc])
+    assert hashlib.sha256(dump.encode("utf-8")).hexdigest() == CHUNKS_SHA256
 
 
 def test_chunk_counts(chunks) -> None:
@@ -40,8 +52,8 @@ def test_sanity_and_non_empty_fields(chunks) -> None:
 
 
 def test_ids_are_deterministic() -> None:
-    first = [c.model_dump() for c in chunk_document(CONFIGS["pua220"])]
-    assert first == [c.model_dump() for c in chunk_document(CONFIGS["pua220"])]
+    first = [c.model_dump() for c in chunk_document(CARDS["pua220"], CORPUS)]
+    assert first == [c.model_dump() for c in chunk_document(CARDS["pua220"], CORPUS)]
 
 
 def test_act854_key_chunks(chunks) -> None:

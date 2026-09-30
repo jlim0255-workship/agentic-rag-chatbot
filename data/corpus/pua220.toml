@@ -1,0 +1,20 @@
+# Document card: facts about PUA-220.pdf that the parser cannot guess, read off the PDF by hand.
+# Every "line" value is copied exactly from data/work/pua220.lines.txt (written by the extract step).
+# The file name (pua220) is the document id and the chunk id prefix: pua220:r2:1.
+
+title        = "Cyber Security (Notification of Cyber Security Incident) Regulations 2024 [P.U.(A) 220/2024], made under the Cyber Security Act 2024"
+short_name   = "PUA220"
+version_date = 2024-08-26                # commencement date, regulation 1(2)
+pdf          = "../raw/PUA-220.pdf"      # English-only crop of the gazette (printed pages 5-7)
+extraction   = "layout"                  # the default mode splits words here ("nation al"); layout does not
+page_offset  = 4                         # PDF page 1 is printed page 5
+
+headers = ["P.U. (A) 220"]               # first line of every page
+footers = ["{page}"]                     # printed page number, last line of every page
+
+# No arrangement page: the outline is generated from the body (the heading line above each "N. ").
+body_starts_after = "[Act 854], the Minister makes the following regulations:"
+body_ends_before  = "Made 19 August 2024"
+
+unit        = "Regulation"               # chunk ids use "r": pua220:r2:1
+definitions = []

@@ -23,6 +23,7 @@ services:
     environment:
       # Container-side values override the host-side ones in .env.
       DATABASE_URL: postgresql://${POSTGRES_USER:-rag}:${POSTGRES_PASSWORD:-rag}@db:5432/${POSTGRES_DB:-rag}
+      STAFF_DATABASE_URL: postgresql://${POSTGRES_USER:-rag}:${POSTGRES_PASSWORD:-rag}@db:5432/employee_demo
       OLLAMA_BASE_URL: http://host.docker.internal:11434
       LANGCHAIN_TRACING_V2: "false"
     extra_hosts:

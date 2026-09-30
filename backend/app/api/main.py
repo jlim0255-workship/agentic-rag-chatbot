@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
+import uuid
 from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager
 from typing import Any, Literal
@@ -16,9 +17,10 @@ from pydantic import BaseModel, Field
 from app.api.health import HealthReport, build_health_report
 from app.config import Settings, get_settings
 from app.db import connection, meta
-from app.graph.traditional import run_traditional
+from app.pipeline.flow import run
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 
 class EmbeddingModelMismatch(RuntimeError):
@@ -62,15 +64,29 @@ def sse(event: str, data: Any) -> str:
 
 
 def chat_events(req: ChatRequest, settings: Settings) -> Iterator[str]:
-    """Format pipeline events as SSE. Any failure becomes one `error` event, then the stream closes."""
+    """Format pipeline events as SSE. Any failure becomes one `error` event, then the stream closes.
+    Every event is also logged, tagged with a short request id so concurrent questions don't mix."""
+    rid = uuid.uuid4().hex[:4]
+    logger.info("[%s] %s question: %s", rid, req.mode, req.question)
     try:
-        if req.mode == "agentic":
-            raise NotImplementedError("Agentic mode is not built yet (milestone M4); use traditional mode.")
-        for event, data in run_traditional(req.question, settings):
+        for event, data in run(req.question, req.mode, settings):
+            log_event(rid, event, data)
             yield sse(event, data)
     except Exception as e:  # noqa: BLE001 - the client must always get an event, never a hang
-        logger.exception("chat failed")
+        logger.exception("[%s] chat failed", rid)
         yield sse("error", {"message": str(e) or type(e).__name__})
+
+
+def log_event(rid: str, event: str, data: Any) -> None:
+    if event == "trace":
+        detail = json.dumps(data["data"], ensure_ascii=False)[:300] if data["data"] else ""
+        logger.info("[%s] %s %s: %s %s", rid, data["node"], data["status"], data["summary"], detail)
+    elif event == "answer":
+        logger.info("[%s] answer: %s", rid, " ".join(data["text"][:120].split()))
+    elif event == "citations":
+        logger.info("[%s] citations: %s", rid, [c["chunk_id"] for c in data])
+    else:  # metrics, done
+        logger.info("[%s] %s: %s", rid, event, data)
 
 
 @app.post("/chat")

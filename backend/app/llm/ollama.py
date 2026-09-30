@@ -47,13 +47,18 @@ def embed(base_url: str, model: str, texts: list[str], timeout_s: float) -> list
     return vectors
 
 
-def chat(base_url: str, model: str, prompt: str, timeout_s: float, num_ctx: int) -> str:
-    """One non-streamed chat turn. Thinking off and temperature 0: fast and repeatable."""
-    body = _request("POST", base_url, "/api/chat", timeout_s, {
+def chat(base_url: str, model: str, prompt: str, timeout_s: float, num_ctx: int,
+         format: dict | None = None) -> str:
+    """One non-streamed chat turn. Thinking off and temperature 0: fast and repeatable.
+    `format` is a JSON schema: Ollama then constrains the output to it."""
+    payload = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
         "stream": False,
         "think": False,
         "options": {"temperature": 0, "num_ctx": num_ctx},
-    })
+    }
+    if format is not None:
+        payload["format"] = format
+    body = _request("POST", base_url, "/api/chat", timeout_s, payload)
     return body["message"]["content"]
