@@ -1,4 +1,4 @@
-"""Create the database schema (PRD 8.3). Safe to run repeatedly.
+"""Create the database schema. Safe to run repeatedly.
 
 Usage (from backend/):
     python -m app.db.schema

@@ -1,4 +1,4 @@
-"""Tools the agent may call (new_prd.md). Run by LangGraph's ToolNode; chosen by the tool_agent node.
+"""Tools the agent may call. Run by LangGraph's ToolNode; chosen by the tool_agent node.
 
 lookup_staff reads FICTIONAL demo data. Its result is appended under the answer by code (flow.run);
 the writer never sees it, so names and numbers cannot be made up.

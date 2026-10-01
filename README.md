@@ -1,274 +1,166 @@
 # Offline Agentic RAG: Cyber Security Act 2024 (Act 854)
 
-An assistant that answers questions about Malaysia's Cyber Security Act 2024 and two of its
-regulations (P.U.(A) 220/2024 and P.U.(A) 219/2024), citing the exact sections. It runs fully
-offline on one laptop. Requirements are in [PRD.md](PRD.md); working rules in [CLAUDE.md](CLAUDE.md).
-
-Answers are informational and cite the source text; they are not legal advice.
-
-> **Status: M5 complete.** Ask a question in the Streamlit UI and get an answer with clickable
-> citations, in **traditional** mode (retrieve once, answer) or **agentic** mode (split the question
-> into sub-questions, grade the retrieved sources, rewrite the search and retry when evidence is
-> missing, or answer "not found"). Source check and router come in M6–M7.
-
-## How it fits together
+Answers questions about Malaysia's Cyber Security Act 2024 and two of its regulations
+(P.U.(A) 219/2024 and P.U.(A) 220/2024), citing the exact sections. Runs fully offline on one laptop.
+Two modes: **traditional** (retrieve once, answer) and **agentic** (route, plan sub-questions, grade the
+sources, rewrite the search and retry, or answer "not found"). Answers are informational, not legal advice.
 
 | Piece | Runs where | What it does |
 |---|---|---|
-| Postgres + pgvector | Docker (`db` service) | Stores documents, chunks and their embeddings |
-| Ollama | Natively on Windows | Runs the chat model and the embedding model locally |
-| Backend (FastAPI) | Docker (`backend` service), or on the host for development | API; talks to Postgres and Ollama only |
-| Frontend (Streamlit) | Docker (`frontend` service), or on the host for development | UI; talks to the backend only |
+| Postgres + pgvector | Docker (`db`) | Documents, chunks, embeddings |
+| Ollama | Natively on Windows | Chat model and embedding model |
+| Backend (FastAPI + LangGraph) | Docker (`backend`) or host | API; talks to Postgres and Ollama only |
+| Frontend (Streamlit) | Docker (`frontend`) or host | UI; talks to the backend only |
 
-## Prerequisites (install once)
+## Setup
 
-1. **Python 3.11.3.** Check with `py -3.11 --version`.
-2. **Docker Desktop** (WSL2 backend). Start it and wait until it says *Engine running*.
-3. **Ollama for Windows**, running (it sits in the system tray). Pull the models:
-
-   ```powershell
-   ollama pull gemma4:e2b
-   ollama pull qwen3-embedding:0.6b
-   ```
-
-   These downloads are the last time anything needs the internet. After that, the system
-   makes no network calls except to local Postgres and Ollama.
-4. **The source PDFs** in `data/raw/` (not committed to git): `Act-854.pdf`, `PUA-219.pdf`, `PUA-220.pdf`.
-
-## First-time setup
-
-All commands are PowerShell, run from the repository root unless stated.
-
-**1. Create your settings file.**
+Prerequisites: Python 3.11.3, Docker Desktop (WSL2), Ollama for Windows, and the source PDFs in `data/raw/`
+(`Act-854.pdf`, `PUA-219.pdf`, `PUA-220.pdf`; not committed). Pull the models once; after that nothing needs
+the internet:
 
 ```powershell
-Copy-Item .env.example .env
+ollama pull gemma4:e2b
+ollama pull qwen3-embedding:0.6b
 ```
 
-`.env` holds model names, the database URL and limits. The defaults work as-is.
-`EMBED_MODEL` and `EMBED_DIM` must always change together, and changing them means re-running ingestion.
-
-**2. Create the Python virtual environment and install the backend.**
-
-A virtual environment (`.venv`) is a private folder of Python packages for this project only,
-so nothing is installed into your system Python.
+From the repo root (PowerShell):
 
 ```powershell
+Copy-Item .env.example .env          # defaults work as-is
 cd backend
 py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
+.\.venv\Scripts\Activate.ps1         # if scripts are blocked: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 pip install -e ".[dev]"
+pip install -r ..\frontend\requirements.txt   # only to run the UI outside Docker
 ```
 
-After `Activate.ps1`, your prompt starts with `(.venv)`; `python` and `pip` now mean the
-project's copies. Run `deactivate` to leave it.
+`EMBED_MODEL` and `EMBED_DIM` in `.env` are tied: change both together, then re-ingest.
 
-If PowerShell says *running scripts is disabled on this system*, allow local scripts for your
-user once with `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, or skip activation and
-call the venv's Python directly: `.\.venv\Scripts\python -m pip install -e ".[dev]"`.
+## Running
 
-`-e` installs the backend in editable mode, so code changes take effect without reinstalling.
-`[dev]` adds the test tools.
-
-**3. Install the frontend into the same venv** (only needed for running the UI outside Docker):
+**Development** (database in Docker, backend and UI on the host):
 
 ```powershell
-pip install -r ..rontend
-equirements.txt
-```
-
-## Running it
-
-There are two ways. Use **A** while developing (fast reload), **B** to run everything the way the demo runs.
-
-### A. Development: database in Docker, backend on your machine
-
-```powershell
-# Terminal 1, repo root: start Postgres
 docker compose up -d db
-
-# Terminal 1, backend/ with the venv active: create the tables (safe to re-run)
 cd backend
-.\.venv\Scripts\Activate.ps1
-python -m app.db.schema
-
-# Start the API; --reload restarts it when you edit code
-uvicorn app.api.main:app --reload
-
-# Terminal 2, frontend/ with the same venv active: start the UI
+python -m app.db.schema                  # create tables; safe to re-run
+uvicorn app.api.main:app --reload        # API on http://localhost:8000
+# second terminal, same venv:
 cd frontend
-..backend\.venv\Scripts\Activate.ps1
-streamlit run app.py
+streamlit run app.py                     # UI on http://localhost:8501
 ```
 
-Open <http://localhost:8501>. The UI calls the API at `http://localhost:8000` (change with `BACKEND_URL`).
+**Full stack in Docker:** `docker compose up -d --build` (creates the tables itself). Ollama stays outside
+Docker; the backend reaches it through `host.docker.internal`. Use one way or the other: both use ports 8000 and 8501.
 
-### B. Full stack in Docker
-
-```powershell
-docker compose up -d --build
-```
-
-This builds the images, starts `db`, `backend` and `frontend`, and creates the tables automatically.
-Open <http://localhost:8501>. Ollama stays outside Docker; the backend reaches it through `host.docker.internal`.
-Use A or B, not both at once: they use the same ports (8000 API, 8501 UI).
-Ingestion (below) still runs from your machine, as in A; the containers see the same database.
-
-### Check it is working
-
-Open <http://localhost:8000/health> (or `curl http://localhost:8000/health`). A healthy system
-returns HTTP 200 with `"status": "ok"`. HTTP 503 means something is wrong, and the response says what:
+**Health:** `GET http://localhost:8000/health` returns 200 with `"status": "ok"`, or 503 saying what is wrong:
 
 | Field | Meaning when it fails |
 |---|---|
-| `database.ok: false` | Postgres not running: `docker compose up -d db` |
-| `ollama.ok: false` | Ollama not running: start it from the Start menu |
-| `ollama.missing_models` | A configured model is not pulled: `ollama pull <name>` |
-| `embedding.status: "mismatch"` | Stored vectors came from a different embedding model than `.env` says. The API also refuses to start in this case |
+| `database.ok: false` | Postgres not running |
+| `ollama.ok: false` | Ollama not running |
+| `ollama.missing_models` | A configured model is not pulled |
+| `embedding.status: "mismatch"` | Stored vectors come from a different embedding model than `.env` (the API also refuses to start) |
+| `embedding.status: "not_ingested"` | Ingestion has not run yet |
 
-`embedding.status: "not_ingested"` means ingestion has not run yet (next section).
+Other endpoints: `POST /chat` (server-sent events), `GET /chunks/{id}`, docs at <http://localhost:8000/docs>.
 
-## Loading the documents (ingestion)
+## Ingestion
 
-Run once after first setup, and again whenever a PDF, a document card in `data/corpus/`, or the
-embedding model changes. Needs the database and Ollama running. From `backend/` with the venv active:
-
-```powershell
-# 1. Read the PDFs, build each one's table of contents (outline) from the PDF, check it equals the
-#    reviewed outline in data/corpus/, split into chunks (one per section/regulation/definition)
-#    and save them to the database.
-python -m app.ingest.run_chunk --corpus-dir ../data/corpus --dump ../data/chunks.jsonl
-
-# 2. Turn each chunk into an embedding (a list of 1024 numbers used for search) with Ollama.
-python -m app.ingest.run_embed
-```
-
-Expected output: `act854: 85 chunks`, `pua219: 3 chunks`, `pua220: 3 chunks`, then `91 chunks to embed`.
-Afterwards `/health` shows `embedding.status: "match"`.
-
-- Both steps are safe to re-run. Chunks are matched by ID, so nothing is duplicated, and step 2
-  only embeds chunks that are new or whose text changed.
-- `--dump` writes every chunk to `data/chunks.jsonl`, handy for reading what the parser produced.
-  Add `--no-db` to step 1 to only parse and check, without touching the database.
-- Each document has a hand-written **document card** (`data/corpus/<doc>.toml`: title, page offset,
-  running headers, the exact lines where the body starts and ends) and a generated, reviewed
-  **outline** (`data/corpus/<doc>.outline.md`: Part, number and heading of every unit). Step 1 also
-  writes `data/work/<doc>.lines.txt`, every PDF line with its printed page, for checking the card.
-- If the outline built from the PDF differs from the committed one, or the body does not match the
-  outline, step 1 stops with a message naming the unit and page; nothing is written. For a new or
-  changed PDF, run step 1 with `--no-db --write-outline`, review the outline against the PDF, commit it.
-- After changing `EMBED_MODEL`/`EMBED_DIM` in `.env`: `docker compose exec db psql -U rag -d rag -c "DROP TABLE chunks"`,
-  then `python -m app.db.schema`, step 1, and step 2 with `--all`.
-
-### Demo add-on: staff-directory tool (fictional data, `new_prd.md`)
-
-In agentic mode the agent can call a `lookup_staff` tool (LangGraph `ToolNode`) on a table of 10 fictional
-people; the contacts are appended under the answer by code. Load the table once (from `backend/`):
+Run once, and again when a file in `data/llamaparsed/` or the embedding model changes. From `backend/`:
 
 ```powershell
-python -m app.db.schema       # adds the demo_staff table (safe to re-run)
-python -m app.db.seed_staff   # 10 fictional people
+python -m app.ingest.run_chunk --dump ../data/chunks.jsonl   # parse + chunk + save (add --no-db to only check)
+python -m app.ingest.run_embed                               # embed new or changed chunks (--all for every chunk)
 ```
 
-Try: "Ransomware has encrypted our patient records. Who do I contact, and by when?"
+Expected: `act854: 85 chunks`, `pua219: 3 chunks`, `pua220: 3 chunks`, then `91 chunks to embed`. Both steps are
+safe to re-run (chunks are matched by ID).
 
-Interactive API docs: <http://localhost:8000/docs>.
+The input is `data/llamaparsed/<doc>.md`: each PDF converted once by hand with LlamaParse (never called by the
+app) and corrected into a fixed format (`# Part X: Title`, `## N. Heading`, `<!-- page N -->` markers, text as
+printed), with a document card between `+++` lines at the top. `run_chunk` stops, writing nothing, if a file
+breaks the format (unknown heading, non-consecutive section numbers, a missing `## N.` heading).
+
+After changing the embedding model: `docker compose exec db psql -U rag -d rag -c "DROP TABLE chunks"`, then
+`python -m app.db.schema`, `run_chunk`, and `run_embed --all`.
 
 ## Asking a question
 
-The UI is a chat page: pick **traditional** or **agentic** mode in the sidebar, type in the box at the
-bottom and press Enter. While a question runs, a status box shows each step live. The answer then appears
-once, complete, with its label, timing, and two collapsed sections: **Sources** (the exact section text,
-document and page for each citation) and **Trace** (every step's decision). Earlier questions and answers
-stay on the page for this browser tab; **Clear conversation** in the sidebar removes them. Each question
-is answered on its own: the model never sees earlier turns, so include the details you need.
+In the UI, pick **traditional** or **agentic** in the sidebar and type a question. A status box shows each
+step live; the answer then shows its label, timing, **Sources** (cited section text, document, page) and
+**Trace** (every step's decision). Each question is answered on its own: the model does not see earlier turns.
 
-- The first question after starting takes ~40 s while Ollama loads the models into GPU memory;
-  later ones take ~7–16 s (measured on an RTX 3050, 4 GB).
-- **Agentic** answers go through an automated source check before they are shown: every cited ID must
-  be one of the sources given, every factual sentence must have a citation, and the model checks each
-  cited sentence against its source. The label reads *Passed automated source check*, or says how many
-  sentences were flagged; flagged sentences carry a visible ⚠ note. It is a small model judging, so it
-  can be wrong both ways: check the cited source text. **Traditional** answers are labelled *Not checked*.
-- **Agentic** mode first routes the question: greetings and off-topic questions (e.g. "what is 1+1?")
-  get a fixed reply with no search; simple questions skip the grading loop; complex ones get the full
-  agent (sub-questions, grading with verified quotes, rewritten searches). It makes more LLM calls, so it
-  is slower. Expand **Trace** under an answer to see every decision.
-- The API server logs the same steps, one line each, tagged with a short request id:
-  `docker compose logs -f backend` (or the terminal running `uvicorn`).
-- If the answer is not in the documents, the reply is *Not found in the provided documents*.
-
-The API can also be called directly; it streams server-sent events:
+- First question after start-up takes ~40 s (models loading); later ones ~7–16 s on an RTX 3050 4 GB.
+- Answers are labelled *Not checked: no automated source check*. Only sources given to the writer can be cited.
+- Agentic mode routes first: off-topic questions get a fixed reply with no search. It makes more LLM calls than traditional.
+- If the documents do not answer the question, the reply is *Not found in the provided documents*.
+- The API logs every step with a request id (`docker compose logs -f backend` or the `uvicorn` terminal).
 
 ```powershell
 curl.exe -N -X POST http://localhost:8000/chat -H "Content-Type: application/json" -d '{\"question\": \"How quickly must an incident be reported?\", \"mode\": \"traditional\"}'
 ```
 
+**Staff-directory tool (demo, fictional data).** In agentic mode the agent can call `lookup_staff` (LangGraph
+`ToolNode`) on 10 fictional people; the contacts are appended under the answer by code. Load them once from
+`backend/` with `python -m app.db.seed_staff` (creates the `employee_demo` database; safe to re-run). Try:
+"Ransomware has encrypted our patient records. Who do I contact, and by when?"
+
 ## Evaluation
 
-The golden set is `backend/eval/golden.jsonl`: 30 questions (10 single-hop, 10 multi-hop, 5 not in the
-documents, 5 ambiguous), each with the sections that answer it and the key facts a correct answer contains.
-From `backend/` with the venv active (database ingested, Ollama running):
+Golden set: `backend/eval/golden.jsonl`, 30 questions (10 single-hop, 10 multi-hop, 5 not in the documents,
+5 ambiguous), each with the sections that answer it and the key facts a correct answer contains. From `backend/`:
 
 ```powershell
-# Experiment A: retrieval only, no LLM (~1 minute). Compares semantic, BM25 and hybrid search.
-python -m eval.run retrieval
-
-# Experiment B: traditional vs agentic, full answers through the API (API must be running; ~25 minutes).
-python -m eval.run e2e
-# ... or one mode only
-python -m eval.run e2e --mode agentic
+python -m eval.run retrieval                      # semantic vs BM25 vs hybrid, no LLM (~1 min)
+python -m eval.run e2e [--mode agentic]           # traditional vs agentic through the running API (~25 min)
+python -m eval.run_cloud --model gemma4:31b-cloud # same, in-process, with another model
+python -m eval.judge eval/reports/<stem>-rows.jsonl [...] [--judge gpt-oss:120b-cloud]   # LLM-as-judge
 ```
 
-Reports are written to `backend/eval/reports/`, timestamped (Markdown + CSV):
+Reports go to `backend/eval/reports/`, timestamped (Markdown + CSV):
 
-- `*-retrieval.md`: a scoreboard (✅ all needed sections found / 🟡 some / ❌ none, per method), results by
-  category, a per-question table, and the questions where the methods disagree.
-- `*-e2e.md`: the same layout for traditional vs agentic (evidence given to the writer, final status,
-  source check), plus the rewrite-similarity table used to calibrate the drift gate.
-- `*-e2e-<mode>-answers.md`: every answer next to the key facts a correct answer contains, for manual review.
+- `*-retrieval.md`: FULL / PART / MISS (all / some / none of the needed sections found) per method, by category, best-match similarity.
+- `*-e2e*.md`: the same for traditional vs agentic, plus status, latency, LLM calls; `*-answers.md` lists every answer next to its key facts.
+- `*-rows.jsonl`: raw answers, input to `eval.judge`.
+- `*-judge-<model>.md`: judged correctness, faithfulness and relevance per model × mode, and why answers were wrong.
 
-Every rate is shown with its count, e.g. `7/10 (70%)`. Experiment B talks to whatever API is running:
-after changing backend code, rebuild the container first (`docker compose up -d --build backend`).
+Every rate is shown with its count, e.g. `7/10 (70%)`. Judge scores come from an LLM and can be wrong in both
+directions. `-cloud` models send questions and chunks to Ollama Cloud: evaluation only, the app stays offline.
+`eval.run e2e` tests whatever API is running, so rebuild it after code changes (`docker compose up -d --build backend`).
 
 ## Tests
 
-From `backend/` with the venv active:
-
 ```powershell
-python -m pytest                  # unit + API tests; Postgres and Ollama are faked, nothing needs to run
-python -m pytest -m integration   # against the real Postgres and Ollama (start db and Ollama first)
+python -m pytest                  # unit, API and pipeline tests; Postgres and Ollama are faked
+python -m pytest -m integration   # against real Postgres and Ollama
 ```
 
-## Stopping and resetting
+## Stopping
 
 ```powershell
-docker compose down      # stop containers; the database is kept
-docker compose down -v   # stop AND delete the database (you would re-run the schema and ingestion)
+docker compose down      # stop; the database is kept
+docker compose down -v   # stop and delete the database (re-run schema and ingestion)
 ```
 
-## Repository layout
+## Layout
 
 ```
 backend/
   app/
-    api/         FastAPI app: /chat (SSE), /chunks, /health
-    config.py    settings loaded from .env
-    db/          connection, schema, embedding-model record
-    ingest/      PDF parsing, chunking, database insert, embedding
-    llm/         Ollama client, structured (JSON-schema) output
-    retrieval/   hybrid search: vector + BM25 + RRF
-    pipeline/    how a question is answered: START with flow.py (flow map of both modes)
-      core.py    shared plumbing: state, time budget, trace/SSE events, citations
-      nodes/     one file per step: planner, retrieve, grade, rewrite, not_found, generate, grounding
-  eval/          golden set, evaluation runner, reports/
-  tests/         unit, api, pipeline (LLM faked), integration (real services); fakes.py = shared fakes
-frontend/        Streamlit UI (talks to the API only)
+    api/         FastAPI: /chat (SSE), /chunks, /health
+    config.py    settings from .env (all model names, URLs, limits)
+    db/          connection, schema, embedding-model record, staff demo seed
+    ingest/      Markdown reader, chunker, database insert, embedding
+    llm/         Ollama client, structured (JSON-schema) output with retry
+    retrieval/   hybrid search: pgvector + BM25, fused with RRF
+    pipeline/    flow.py = map of both modes (start here); core.py = shared plumbing; tools.py = lookup_staff
+      nodes/     one file per step: planner, tool_agent, retrieve, grade, rewrite, not_found, generate
+  eval/          golden set, runners, judge, reports/
+  tests/         unit, api, pipeline (LLM faked), integration; fakes.py
+frontend/        Streamlit UI
 data/
-  corpus/      per document: card (<doc>.toml, hand-written) and outline (<doc>.outline.md, reviewed)
-  work/        extracted PDF lines for checking (generated, not committed)
-  raw/         source PDFs (not committed)
-docker-compose.yml
-.env.example
+  llamaparsed/   ingestion input: <doc>.md per document
+  raw/           source PDFs (not committed)
+docker-compose.yml, .env.example
 ```

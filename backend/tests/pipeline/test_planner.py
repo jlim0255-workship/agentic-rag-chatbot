@@ -1,4 +1,4 @@
-"""Planner node: splitting, filter validation, fallback (PRD 10.2), and multi-sub-query graph paths."""
+"""Planner node: splitting, filter validation, fallback, and multi-sub-query graph paths."""
 from __future__ import annotations
 
 import pytest

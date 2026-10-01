@@ -1,15 +1,15 @@
 """START HERE. How a question flows, in both modes. Every box is one file in app/pipeline/nodes/.
 
-TRADITIONAL (PRD 10.3): one search with the question, then write. 1 LLM call.
+TRADITIONAL: one search with the question, then write. 1 LLM call.
 
     retrieve ─► any chunks? ─ yes ─► generate ─► end
                             └ no ──► end ("not found")
 
-AGENTIC (PRD 10): the LLM's judgements choose the route; code enforces the limits.
+AGENTIC: the LLM's judgements choose the route; code enforces the limits.
 
     planner ─┬─ out_of_scope ─► end (fixed reply written by code, no writer call)
      (LLM)   └─ complex ▼
-               tool_agent ─┬─ calls lookup_staff ─► tools (ToolNode, no LLM) ─┐   staff tool (new_prd.md):
+               tool_agent ─┬─ calls lookup_staff ─► tools (ToolNode, no LLM) ─┐   staff tool:
                 (LLM)      └─ no tool call ───────────────────────────────────┤   its list is appended to the
                                                                               ▼   final answer by code
                retrieve ─► grade ─┬─ sufficient ─────────────────────► generate ─► end
@@ -131,7 +131,7 @@ def contacts(state: State) -> str:
 # --- the runner: one graph run -> SSE events ---
 
 def run(question: str, mode: str, settings: Settings) -> Iterator[Event]:
-    """Yield (event, payload) pairs in PRD 11.2 order. Trace events stream live from inside the nodes.
+    """Yield (event, payload) pairs in SSE order (trace* -> answer -> citations -> metrics -> done). Trace events stream live from inside the nodes.
     Timeouts end with status 'timeout'; other errors propagate (the API turns them into an `error` event)."""
     ctx = Ctx(settings)
     graph = agentic_graph(ctx) if mode == "agentic" else traditional_graph(ctx)

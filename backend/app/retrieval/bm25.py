@@ -1,4 +1,4 @@
-"""Okapi BM25 (real BM25, so it may be called that; PRD 9). Standard library only."""
+"""Okapi BM25 (real BM25, so it may be called that). Standard library only."""
 from __future__ import annotations
 
 import math

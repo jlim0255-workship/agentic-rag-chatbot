@@ -40,7 +40,7 @@ def chunk_document(doc: Document) -> list[Chunk]:
 
 
 def sanity_check(chunks: list[Chunk]) -> None:
-    """Cheap assertions from PRD 8.4 before anything touches the DB."""
+    """Cheap assertions before anything touches the DB."""
     seen: set[str] = set()
     for c in chunks:
         if c.id in seen:

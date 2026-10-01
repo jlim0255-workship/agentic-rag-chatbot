@@ -3,7 +3,7 @@
 Verdicts (plain text, so tables can be pasted into slides):
   FULL  every needed section was among the chunks passed on      PART  some were      MISS  none were
   OK / WRONG  for questions the documents cannot answer: declined (not found / out of scope) or not
-Honesty rule (PRD 13.3): every rate is shown with its count, e.g. "7/10 (70%)".
+Every rate is shown with its count, e.g. "7/10 (70%)".
 """
 from __future__ import annotations
 
@@ -169,7 +169,7 @@ def e2e_report(rows: list[dict], modes: list[str], questions: list[dict], header
                   *(category_cell([r for r in rows if r["mode"] == m and r["category"] == c], c) for m in modes)]
                  for c in cats])
 
-    # Diff compares what matters (evidence level + final status), not the source-check part only agentic has.
+    # Diff compares what matters: evidence level + final status.
     def key(r: dict) -> tuple:
         return (r["outcome"]["level"] if r["outcome"] else None, r["status"])
 

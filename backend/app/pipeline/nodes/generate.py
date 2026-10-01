@@ -1,4 +1,4 @@
-"""Generate node (PRD 10.2): the writer. Answers from the given chunks only, citing chunk IDs.
+"""Generate node: the writer. Answers from the given chunks only, citing chunk IDs.
 Shared by both modes. Uses the answer model; the only node that writes text for the user."""
 from __future__ import annotations
 
@@ -36,14 +36,14 @@ def build_prompt(question: str, chunks: list[Retrieved], unanswered: list[str] |
 
 
 def generate_node(state: State, ctx: Ctx) -> dict:
-    # Steer, don't delete: chunks with a verified quote first, then everything else retrieved, capped.
+    # Steer, don't delete: chunks the grader judged sufficient first, then everything else retrieved, capped.
     # (Traditional mode has no grader, so `relevant` is empty and the writer gets what was retrieved.)
     verified = list(state["relevant"].values())
     others = [c for id_, c in state["supporting"].items() if id_ not in state["relevant"]]
     chunks = (verified + others)[:max(ctx.settings.writer_max_chunks, len(verified))]
     partial = state["status"] == "partial"
-    # Name only sub-queries with no verified evidence. A partly covered one is not named: its `missing` note
-    # reflects only the last attempt and can list a need an earlier attempt verified (the writer then says
+    # Name only sub-queries with no sufficient evidence. A partly covered one is not named: its `missing` note
+    # reflects only the last attempt and can list a need an earlier attempt covered (the writer then says
     # NOT_FOUND despite holding the evidence). The writer still replies NOT_FOUND if its sources don't answer.
     unanswered = [s.original for s in state["sub_queries"] if not s.answered and not s.partly] if partial else []
     ctx.emit("generate", "start", "Writing the answer…", {"chunks": [c.id for c in chunks], "unanswered": unanswered})

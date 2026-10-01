@@ -1,7 +1,6 @@
 """Settings loaded from environment variables (and the repo-root .env file).
 
-The only place model names, URLs and limits live (CLAUDE.md hard rule). Defaults below are the
-ones the PRD states (Section 12.4); values the PRD leaves open have no default and must be set.
+The only place model names, URLs and limits live. Fields without a default must be set in .env.
 """
 from __future__ import annotations
 
@@ -26,16 +25,16 @@ class Settings(BaseSettings):
     fast_model: str = "gemma4:e2b"
     answer_model: str = "gemma4:e2b"
 
-    # Embedding model and vector size are tied (PRD 8.3): no defaults, so they are always set together.
+    # Embedding model and vector size are tied (changing either means re-ingesting): no defaults, so they are always set together.
     embed_model: str
     embed_dim: int = Field(gt=0, le=2000)  # pgvector HNSW indexes support at most 2000 dimensions
     embed_batch_size: int = Field(default=16, gt=0)   # chunks per Ollama embed request
     embed_timeout_s: float = Field(default=120, gt=0)  # per embed request; first call also loads the model
 
     database_url: str
-    staff_database_url: str  # separate employee_demo database for the staff tool (new_prd.md)
+    staff_database_url: str  # separate employee_demo database for the staff tool
 
-    # Retrieval (PRD 9). No defaults: set in .env (keep TOP_K_FINAL small for 4 GB VRAM).
+    # Retrieval. No defaults: set in .env (keep TOP_K_FINAL small for 4 GB VRAM).
     top_k_vector: int = Field(gt=0)
     top_k_bm25: int = Field(gt=0)
     top_k_final: int = Field(gt=0)
@@ -45,16 +44,16 @@ class Settings(BaseSettings):
     llm_call_timeout_s: float = Field(gt=0)
     question_budget_s: float = Field(gt=0)
 
-    # Agent limits (PRD 10.4)
+    # Agent limits
     rrf_k: int = Field(default=60, gt=0)
     max_retries: int = Field(default=2, ge=0)
     max_sub_queries: int = Field(default=3, gt=0)
-    writer_max_chunks: int = Field(default=10, gt=0)  # agentic: verified chunks + other retrieved context
+    writer_max_chunks: int = Field(default=10, gt=0)  # agentic: chunks judged sufficient + other retrieved context
 
     # How long /health waits for Postgres or Ollama before reporting them down.
     health_timeout_s: float = Field(default=3.0, gt=0)
 
-    # Offline rule (PRD 5.1): hosted LangChain tracing must stay off.
+    # Offline rule: hosted LangChain tracing must stay off.
     langchain_tracing_v2: bool = False
 
     @field_validator("langchain_tracing_v2")

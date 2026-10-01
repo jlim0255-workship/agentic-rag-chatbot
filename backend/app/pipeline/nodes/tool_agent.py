@@ -1,4 +1,4 @@
-"""Tool agent node (new_prd.md): the model decides whether to call a tool, using ChatOllama.bind_tools.
+"""Tool agent node: the model decides whether to call a tool, using ChatOllama.bind_tools.
 Its reply (an AIMessage, with or without tool_calls) goes into `messages`; tools_condition and ToolNode
 (flow.py) do the rest. No tool call = no staff lookup; the law search runs either way.
 """

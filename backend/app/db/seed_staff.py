@@ -1,5 +1,5 @@
 """Create the employee_demo database and fill demo_staff with 10 FICTIONAL people for the staff-directory
-tool demo (new_prd.md). Safe to re-run.
+tool demo. Safe to re-run.
 
 Usage (from backend/, database running):
     python -m app.db.seed_staff

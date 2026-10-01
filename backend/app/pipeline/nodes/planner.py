@@ -1,4 +1,4 @@
-"""Planner node (PRD 10.2 planner + M7 router in one call): picks a route, and for questions about the law
+"""Planner node (planner and router in one call): picks a route, and for questions about the law
 splits the question into 1..MAX_SUB_QUERIES sub-queries, each with optional filters.
 
 Routes (the JSON schema only allows these): out_of_scope gets a fixed reply (no retrieval, no writer call);

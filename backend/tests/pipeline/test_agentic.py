@@ -1,4 +1,4 @@
-"""Agentic routing with the LLM and retrieval faked (PRD 14 'Graph routing' and 'Node' layers)."""
+"""Agentic routing with the LLM and retrieval faked: graph routing and node behaviour."""
 from __future__ import annotations
 
 import json
@@ -102,7 +102,7 @@ def test_llm_timeout_ends_with_timeout(settings: Settings, world, monkeypatch: p
     assert events[-1] == ("done", {"status": "timeout"})
 
 
-# --- partial evidence (two sub-queries; the planner that creates them arrives at M5) ---
+# --- partial evidence (two sub-queries, as the planner creates them) ---
 
 def test_partial_evidence_generates_and_names_the_missing_part(settings: Settings, monkeypatch) -> None:
     monkeypatch.setattr(Ctx, "emit", staticmethod(lambda *a, **k: None))

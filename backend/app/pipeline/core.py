@@ -20,7 +20,7 @@ from app.llm.ollama import OllamaTimeout
 from app.retrieval.search import Filters, Retrieved
 
 # ---------------------------------------------------------------------------------------------------
-# 1. State (PRD 10.1): what a question carries through the graph. Nodes return partial updates.
+# 1. State: what a question carries through the graph. Nodes return partial updates.
 # ---------------------------------------------------------------------------------------------------
 
 
@@ -29,8 +29,8 @@ class SubQuery(BaseModel):
     query: str                # current wording; changed by Rewrite
     variants: list[str] = []  # extra queries from Rewrite, all searched and fused; empty = just `query`
     filters: Filters = Filters()
-    answered: bool = False    # every need the grader listed is covered by a verified quote
-    partly: bool = False      # at least one need is covered by a verified quote
+    answered: bool = False    # the grader judged its sources sufficient
+    partly: bool = False      # set together with `answered` by the yes/no grader
     missing: str = ""         # grader's note on what evidence is missing
     exhausted: bool = False   # Rewrite gave up (only repeats); no more attempts
 
@@ -41,7 +41,7 @@ class State(TypedDict, total=False):
     current: list[int]                  # indexes of sub-queries used in the latest retrieval attempt
     query_history: list[str]            # every query tried, to detect repeats
     retrieved: dict[int, list[Retrieved]]
-    relevant: dict[str, Retrieved]      # chunks with a verified quote, accumulated, keyed by chunk id
+    relevant: dict[str, Retrieved]      # chunks of sub-queries judged sufficient, accumulated, keyed by chunk id
     supporting: dict[str, Retrieved]    # every chunk retrieved at any attempt (writer context after `relevant`)
     passed: list[Retrieved]             # chunks actually given to the writer
     retry_count: int
@@ -49,7 +49,7 @@ class State(TypedDict, total=False):
     answer: str                         # the writer's text, with [chunk id] citation markers
     status: str                         # answered | partial | not_found
     route: str                          # agentic planner: out_of_scope | complex
-    messages: Annotated[list, add_messages]  # tool_agent's AIMessage + ToolNode's ToolMessage (new_prd.md)
+    messages: Annotated[list, add_messages]  # tool_agent's AIMessage + ToolNode's ToolMessage
 
 
 def new_state(question: str) -> State:
@@ -119,7 +119,7 @@ def resolve(id_: str, given) -> str:
 
 
 # ---------------------------------------------------------------------------------------------------
-# 4. Final SSE events (PRD 11.2 order: trace* -> answer -> citations -> metrics -> done).
+# 4. Final SSE events (order: trace* -> answer -> citations -> metrics -> done).
 # ---------------------------------------------------------------------------------------------------
 
 NOT_FOUND_TEXT = "Not found in the provided documents."

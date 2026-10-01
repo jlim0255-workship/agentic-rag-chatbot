@@ -1,4 +1,4 @@
-"""Evaluation runner (PRD 13): runs the golden questions and writes reports to eval/reports/.
+"""Evaluation runner: runs the golden questions and writes reports to eval/reports/.
 Collecting results lives here; turning them into Markdown lives in report.py.
 
 Usage (from backend/; DB ingested, Ollama running):
@@ -115,7 +115,7 @@ def collect(events) -> dict:
     run_cloud.py (which runs the pipeline in-process)."""
     result = {"status": "error", "answer": "", "label": "", "citations": [], "passed": [], "metrics": {}}
     for name, data in events:
-        # Evidence (PRD 13.2) = the chunks given to the writer. None if the writer was never called.
+        # Evidence = the chunks given to the writer. None if the writer was never called.
         if name == "trace" and data["node"] == "generate" and data["status"] == "start":
             result["passed"] = data["data"]["chunks"]
         elif name == "answer":

@@ -1,6 +1,6 @@
 """Data models for ingestion: the document card, lines, units and chunks.
 
-Field meanings follow PRD Sections 8.3 and 8.5. The pipeline, one step per module:
+The pipeline, one step per module:
     reader.py   data/llamaparsed/<doc>.md -> DocumentCard + Unit list (+ long title, Schedule)
     chunker.py  Units -> Chunk list
 """
@@ -52,7 +52,7 @@ class Unit(BaseModel):
 
 
 class Chunk(BaseModel):
-    """Matches the `chunks` table (PRD 8.3), minus `embedding`."""
+    """Matches the `chunks` table, minus `embedding`."""
 
     id: str
     document_id: str

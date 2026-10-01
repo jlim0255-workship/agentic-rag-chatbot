@@ -1,4 +1,4 @@
-"""Rewrite node (PRD 10.2): new searches for each sub-query still missing evidence.
+"""Rewrite node: new searches for each sub-query still missing evidence.
 
 Escalates one technique per retry (one LLM call per unanswered sub-query per retry):
   retry 1: paraphrase + expansion into formal legal terms, searched together (multi-query, fused by RRF)
@@ -59,7 +59,7 @@ def rewrite_node(state: State, ctx: Ctx) -> dict:
         if s.answered or s.exhausted:
             continue
         new: list[str] = []
-        for _ in range(2):  # PRD: repeats are rejected, with one more attempt before giving up
+        for _ in range(2):  # repeats are rejected, with one more attempt before giving up
             out, n = call_structured(
                 prompt.format(question=s.original, failed=s.query, missing=s.missing or "not stated",
                               history="\n".join(f"- {q}" for q in history)),
@@ -77,7 +77,7 @@ def rewrite_node(state: State, ctx: Ctx) -> dict:
         report.append({"technique": technique, "from": s.query, "to": new, "gave_up": False,
                        "filters_removed": s.filters.model_dump()})
         s.query, s.variants = new[0], new
-        s.filters = Filters()  # a wrong planner filter can hide the answer: retry without it (PRD allows removal)
+        s.filters = Filters()  # a wrong planner filter can hide the answer: retry without it
         history += new
         current.append(i)
     ctx.emit("rewrite", "end", f"{technique}: {len(current)} sub-quer{'y' if len(current) == 1 else 'ies'} rewritten",

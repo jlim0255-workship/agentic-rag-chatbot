@@ -1,4 +1,4 @@
-"""Staff-directory tool (new_prd.md): tool_agent → tools_condition → ToolNode → contact list appended by code."""
+"""Staff-directory tool: tool_agent → tools_condition → ToolNode → contact list appended by code."""
 from __future__ import annotations
 
 from contextlib import contextmanager

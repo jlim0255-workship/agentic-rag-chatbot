@@ -1,4 +1,4 @@
-"""The real corpus (data/llamaparsed/): chunk counts, key chunks and a pinned snapshot (PRD 8.4)."""
+"""The real corpus (data/llamaparsed/): chunk counts, key chunks and a pinned snapshot."""
 from __future__ import annotations
 
 import hashlib

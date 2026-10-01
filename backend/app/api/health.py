@@ -24,7 +24,7 @@ class OllamaStatus(BaseModel):
 
 
 class ModelsInUse(BaseModel):
-    """Shown in the UI sidebar (PRD 12.4)."""
+    """Shown in the UI sidebar."""
 
     fast_model: str
     answer_model: str

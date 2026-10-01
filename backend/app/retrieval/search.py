@@ -1,4 +1,4 @@
-"""Hybrid retrieval: pgvector cosine + BM25, fused with RRF (PRD 9). Shared by both modes."""
+"""Hybrid retrieval: pgvector cosine + BM25, fused with RRF. Shared by both modes."""
 from __future__ import annotations
 
 from collections import defaultdict
@@ -66,7 +66,7 @@ def retrieve(conn: psycopg.Connection, settings: Settings, query: str, filters: 
              top_k: int | None = None) -> list[Retrieved]:
     """Top TOP_K_FINAL (or top_k) chunks for the query. Filters apply to both searches, before fusion.
 
-    `method` exists for the retrieval comparison in the evaluation (PRD 13); the app always uses hybrid.
+    `method` exists for the retrieval comparison in the evaluation; the app always uses hybrid.
     With one search, RRF simply keeps that search's order.
 
     Exact cosine search in SQL (no HNSW): with ~100 chunks it is instant, and approximate

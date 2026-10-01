@@ -76,7 +76,7 @@ def split_definitions(unit: Unit) -> list[tuple[str, list[Line]]]:
 def contextual_header(card: DocumentCard, unit_label: str | None, unit_no: str | None,
                       heading: str, part: str | None, part_title: str | None,
                       term: str | None = None) -> str:
-    """Build the header prepended to text for embedding and BM25 (PRD 8.5).
+    """Build the header prepended to text for embedding and BM25.
 
     Format: "<title> | Part <X>: <Part title, title case> | <Section|Regulation> <n>: <heading>"
       - omit the Part segment when part is None (regulations, long title, Schedule)

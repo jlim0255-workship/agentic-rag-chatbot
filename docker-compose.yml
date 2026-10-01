@@ -1,5 +1,5 @@
-# Ollama is NOT in Compose: it runs natively on Windows (PRD 5.3). The backend reaches it
-# through host.docker.internal. The frontend service is added at M2.
+# Ollama is NOT in Compose: it runs natively on Windows. The backend reaches it
+# through host.docker.internal.
 services:
   db:
     image: pgvector/pgvector:pg16

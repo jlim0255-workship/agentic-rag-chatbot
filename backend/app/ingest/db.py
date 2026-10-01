@@ -77,7 +77,7 @@ def write_embeddings(conn: psycopg.Connection, rows: list[tuple[str, list[float]
 
 
 def record_embedding_model(conn: psycopg.Connection, model: str, dim: int) -> None:
-    """Record which embedding model produced the stored vectors, in `ingest_meta` (PRD 8.3).
+    """Record which embedding model produced the stored vectors, in `ingest_meta`.
 
     The API refuses to start if this does not match settings.EMBED_MODEL.
     """

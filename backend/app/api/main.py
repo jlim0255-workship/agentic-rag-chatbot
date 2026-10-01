@@ -28,7 +28,7 @@ class EmbeddingModelMismatch(RuntimeError):
 
 
 def verify_embedding_model(settings: Settings) -> None:
-    """Refuse to start if stored vectors came from a different embedding model (PRD 8.3).
+    """Refuse to start if stored vectors came from a different embedding model.
 
     A DB that is down is not a reason to refuse: /health reports it and the API recovers when it is up.
     """

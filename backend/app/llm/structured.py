@@ -1,4 +1,4 @@
-"""Structured LLM output (PRD 5.6): JSON schema -> validate -> one retry -> caller's fallback."""
+"""Structured LLM output: JSON schema -> validate -> one retry -> caller's fallback."""
 from __future__ import annotations
 
 import json

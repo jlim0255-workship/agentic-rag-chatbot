@@ -1,4 +1,4 @@
-"""Retrieve node (PRD 10.2): hybrid retrieval for each sub-query in `current`. No LLM.
+"""Retrieve node: hybrid retrieval for each sub-query in `current`. No LLM.
 
 A sub-query with several variants (from Rewrite) searches each and fuses them with RRF (multi-query).
 """

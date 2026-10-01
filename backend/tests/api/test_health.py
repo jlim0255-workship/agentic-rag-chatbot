@@ -92,7 +92,7 @@ def test_embedding_mismatch(client: TestClient, monkeypatch: pytest.MonkeyPatch)
     assert r.json()["embedding"]["status"] == "mismatch"
 
 
-# --- startup: refuse to start on an embedding model mismatch (PRD 8.3) ---
+# --- startup: refuse to start on an embedding model mismatch ---
 
 def test_startup_refuses_on_mismatch(settings: Settings, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(main_module.connection, "connect", fake_connection)

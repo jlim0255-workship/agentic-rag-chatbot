@@ -22,7 +22,7 @@ from . import db
 
 
 def check_dims(vectors: list[list[float]], expected_dim: int) -> None:
-    """Fail loudly if any vector length != EMBED_DIM (model and column dim are tied, PRD 8.3)."""
+    """Fail loudly if any vector length != EMBED_DIM (model and column dim are tied)."""
     bad = {len(v) for v in vectors if len(v) != expected_dim}
     if bad:
         raise ValueError(f"embedding model returned vectors of size {sorted(bad)}, but EMBED_DIM={expected_dim}. "

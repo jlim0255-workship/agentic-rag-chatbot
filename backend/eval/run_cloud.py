@@ -3,7 +3,7 @@ model alone changes the results. Same golden set, prompts, retrieval and limits 
 FAST_MODEL and ANSWER_MODEL are swapped. Runs the pipeline in-process, so the API need not be running.
 
 Eval only: a `-cloud` model sends questions and retrieved chunks to Ollama Cloud (through the local Ollama
-daemon). The shipped system stays local (PRD 5).
+daemon). The shipped system stays local.
 
 One-time setup:  ollama signin  then  ollama pull gemma4:31b-cloud
 Usage (from backend/; DB ingested, Ollama running):

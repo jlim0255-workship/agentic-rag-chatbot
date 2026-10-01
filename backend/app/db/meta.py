@@ -1,4 +1,4 @@
-"""Which embedding model produced the stored vectors (PRD 8.3), and whether it matches config.
+"""Which embedding model produced the stored vectors, and whether it matches config.
 
 Vectors from different embedding models are not comparable. If EMBED_MODEL changes without
 re-ingesting, search silently returns the wrong chunks, so the API checks this at startup.

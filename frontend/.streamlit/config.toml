@@ -1,4 +1,4 @@
-# Offline rule (PRD 5.1): Streamlit must make no internet calls.
+# Offline rule: Streamlit must make no internet calls.
 [browser]
 gatherUsageStats = false
 # Without this, a headless Streamlit calls checkip.amazonaws.com at startup to print an
