@@ -94,7 +94,7 @@ if "turns" not in st.session_state:
     st.session_state.turns = []
 
 with st.sidebar:
-    mode = st.radio("Mode", ["traditional", "agentic"], help="Agentic plans, grades, retries and checks its sources.")
+    mode = st.radio("Mode", ["traditional", "agentic"], help="Agentic plans the search, grades the evidence and retries with rewritten queries.")
     if st.button("Clear conversation"):
         st.session_state.turns = []
     st.subheader("Models in use")

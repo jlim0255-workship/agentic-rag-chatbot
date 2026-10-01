@@ -1,10 +1,10 @@
-# Answers: traditional mode (2026-09-28 22:26)
+# Answers: traditional mode (2026-10-01 12:44)
 
 For manual review: each answer next to the key facts a correct answer contains.
 
 ## S01 (single_hop): Within how many hours must an NCII entity submit the initial particulars of a cyber security incident?
 
-**Result:** FULL #1 · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** pua220:r2:1 act854:s23:1 act854:s35:1 act854:s20:1 act854:s22:1 · **Cited:** pua220:r2:1
 
@@ -16,11 +16,11 @@ Within six hours from the time the cyber security incident comes to the knowledg
 
 ## S02 (single_hop): How often must an NCII entity conduct a cyber security risk assessment and an audit?
 
-**Result:** FULL #1 · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** pua219:r3:1 act854:s22:1 pua219:r1:1 act854:s63:1 pua219:r2:1 · **Cited:** act854:s22:1 pua219:r3:1
 
-A national critical information infrastructure entity shall conduct a cyber security risk assessment at least once a year [act854:s22:1(1)(a)]. It shall carry out an audit at least once in every two years or at such higher frequency as may be directed by the Chief Executive in any particular case [pua219:r3:1(b)].
+A national critical information infrastructure entity shall conduct a cyber security risk assessment at least once a year [act854:s22:1]. It shall carry out an audit at least once in every two years or at such higher frequency as may be directed by the Chief Executive in any particular case [pua219:r3:1].
 
 **Key facts expected:**
 - Risk assessment at least once a year
@@ -28,7 +28,7 @@ A national critical information infrastructure entity shall conduct a cyber secu
 
 ## S03 (single_hop): Through which system must cyber security incident information be submitted?
 
-**Result:** FULL #1 · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** pua220:r3:1 pua220:r2:1 act854:s4:8 act854:s35:1 act854:s23:1 · **Cited:** pua220:r3:1
 
@@ -42,7 +42,7 @@ The submission of information under subregulations 2(2) and (3) must be made thr
 
 **Result:** MISS · said not found · **Label:** Nothing to check: no answer was found in the documents
 
-**Given to the writer:** act854:s15:1 act854:s16:1 act854:s18:1 act854:s17:1 act854:s21:1 · **Cited:** none
+**Given to the writer:** act854:s15:1 act854:s16:1 act854:s18:1 act854:s17:1 act854:s26:1 · **Cited:** none
 
 Not found in the provided documents.
 
@@ -51,7 +51,7 @@ Not found in the provided documents.
 
 ## S05 (single_hop): What is the penalty for providing a cyber security service without a licence?
 
-**Result:** FULL #1 · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s27:1 act854:s34:1 act854:s31:1 act854:s29:1 act854:s32:1 · **Cited:** act854:s27:1
 
@@ -63,7 +63,7 @@ Any person who provides any cyber security service or advertises, or in any way 
 
 ## S06 (single_hop): How long must a licensed cyber security service provider keep its records of services provided?
 
-**Result:** FULL #1 · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s32:1 act854:s27:1 act854:s30:1 act854:s31:1 act854:s4:16 · **Cited:** act854:s32:1
 
@@ -75,11 +75,11 @@ The information referred to in subsection (2) of section 32 of the ACT854 must b
 
 ## S07 (single_hop): Does the Cyber Security Act 2024 apply to offences committed outside Malaysia?
 
-**Result:** FULL #1 · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s3:1 act854:s63:1 act854:s60:1 act854:s27:1 act854:s58:1 · **Cited:** act854:s3:1
 
-(1) This Act shall, in relation to any person, whatever his nationality or citizenship, have effect outside as well as within Malaysia [act854:s3:1]. If an offence under this Act is committed by any person in any place outside Malaysia, it may be dealt with in respect of such offence as if it was committed at any place within Malaysia [act854:s3:1]. If the national critical information infrastructure is wholly or partly in Malaysia, this Act shall apply for the purposes of subsection (1) [act854:s3:1].
+(1) This Act shall, in relation to any person, whatever his nationality or citizenship, have effect outside as well as within Malaysia [act854:s3:1]. If an offence under this Act is committed by any person in any place outside Malaysia, it may be dealt with in respect of such offence as if it was committed at any place within Malaysia [act854:s3:1].
 
 **Key facts expected:**
 - Yes, it has effect outside as well as within Malaysia, whatever the person's nationality or citizenship
@@ -87,9 +87,9 @@ The information referred to in subsection (2) of section 32 of the ACT854 must b
 
 ## S08 (single_hop): How does the Act define a cyber security incident?
 
-**Result:** FULL #2 · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** FULL #2 · answered · **Label:** Not checked: no automated source check
 
-**Given to the writer:** act854:s35:1 act854:s4:8 pua220:r1:1 act854:s23:1 pua220:r2:1 · **Cited:** act854:s4:8
+**Given to the writer:** act854:s35:1 act854:s4:8 pua220:r1:1 pua220:r2:1 act854:s23:1 · **Cited:** act854:s4:8
 
 "cyber security incident" means an act or activity carried out on or through a computer or computer system, without lawful authority, that jeopardizes or adversely affects the cyber security of that computer or computer system or another computer or computer system [act854:s4:8].
 
@@ -98,7 +98,7 @@ The information referred to in subsection (2) of section 32 of the ACT854 must b
 
 ## S09 (single_hop): If an NCII entity makes a material change to its NCII, how long does it have to notify its sector lead?
 
-**Result:** FULL #1 · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s20:1 act854:s23:1 act854:s18:1 act854:s17:1 act854:s16:1 · **Cited:** act854:s20:1
 
@@ -110,7 +110,7 @@ The national critical information infrastructure entity shall notify its nationa
 
 ## S10 (single_hop): What is the penalty if an NCII entity does not follow the Chief Executive's directions during a cyber security exercise?
 
-**Result:** FULL #1 · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s24:1 act854:s35:1 act854:s22:1 act854:s23:1 act854:s21:1 · **Cited:** act854:s24:1
 
@@ -122,7 +122,7 @@ Any national critical information infrastructure entity which fails to comply wi
 
 ## M01 (multi_hop): It is 5pm on Friday and ransomware has hit our hospital, which is an NCII entity. What are we legally required to do, and by when?
 
-**Result:** PART 2/3 (missing PUA220 reg 3) · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** PART 2/3 (missing PUA220 reg 3) · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s16:1 pua220:r2:1 act854:s23:1 act854:s21:1 act854:s20:1 · **Cited:** act854:s23:1
 
@@ -138,7 +138,7 @@ If a cyber security incident has occurred in respect of the national critical in
 
 **Result:** MISS · said not found · **Label:** Nothing to check: no answer was found in the documents
 
-**Given to the writer:** act854:s55:1 act854:s49:1 act854:s14:1 act854:s3:1 act854:s2:1 · **Cited:** none
+**Given to the writer:** act854:s49:1 act854:s55:1 act854:s14:1 act854:s3:1 act854:s2:1 · **Cited:** none
 
 Not found in the provided documents.
 
@@ -149,11 +149,17 @@ Not found in the provided documents.
 
 ## M03 (multi_hop): We are an NCII entity. What recurring security reviews does the law require from us, and what happens if we skip one?
 
-**Result:** PART 1/2 (missing PUA219 reg 3) · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** PART 1/2 (missing PUA219 reg 3) · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s21:1 act854:s26:1 act854:s22:1 act854:s35:1 act854:s24:1 · **Cited:** act854:s22:1
 
-A national critical information infrastructure entity shall conduct a cyber security risk assessment in respect of the national critical information infrastructure owned or operated by the entity in accordance with the code of practice and directive [act854:s22:1](ACT854 s22). The entity must also cause an audit by an auditor approved by the Chief Executive to determine the compliance of the national critical information infrastructure entity with this Act [act854:s22:1](ACT854 s22). The national critical information infrastructure entity must submit the cyber security risk assessment report or audit report to the Chief Executive within thirty days after the completion of the cyber security risk assessment or audit under subsection (1) [act854:s22:1](ACT854 s22). If the result of the cyber security risk assessment is not satisfactory, the Chief Executive may direct the national critical information infrastructure entity to take further initiatives to re-evaluate the cyber security risk to such national critical information infrastructure within the period as may be determined by the Chief Executive [act854:s22:1](ACT854 s22). If the audit report submitted is insufficient, the Chief Executive may direct the national critical information infrastructure entity to rectify the audit report within the period as may be determined by the Chief Executive [act854:s22:1](ACT854 s22). If a national critical information infrastructure entity fails to comply with the directions of the Chief Executive under subsection (3), (4), (5) or (6) regarding cyber security risk assessment or audit, it commits an offence and shall, on conviction, be liable to a fine not exceeding one hundred thousand ringgit [act854:s22:1](ACT854 s22).
+A national critical information infrastructure entity shall conduct a cyber security risk assessment in respect of the national critical information infrastructure owned or operated by the national critical information infrastructure entity in accordance with the code of practice and directive [act854:s22:1](ACT854 s22).
+A national critical information infrastructure entity shall cause an audit by an auditor approved by the Chief Executive to determine the compliance of the national critical information infrastructure entity with this Act [act854:s22:1](ACT854 s22).
+The national critical information infrastructure entity shall submit the cyber security risk assessment report or audit report to the Chief Executive within thirty days after the completion of the cyber security risk assessment or audit under subsection (1) [act854:s22:1](ACT854 s22).
+If the result of the cyber security risk assessment is not satisfactory, the Chief Executive may direct the national critical information infrastructure entity to take further initiatives to re-evaluate the cyber security risk to such national critical information infrastructure within the period as may be determined by the Chief Executive [act854:s22:1](ACT854 s22).
+If the audit report submitted under subsection (2) is insufficient, the Chief Executive may direct the national critical information infrastructure entity to rectify the audit report within the period as may be determined by the Chief Executive [act854:s22:1](ACT854 s22).
+A national critical information infrastructure entity which fails to comply with subsection (1) or (2) commits an offence and shall, on conviction, be liable to a fine not exceeding two hundred thousand ringgit or to imprisonment for a term not exceeding three years or to both [act854:s22:1](ACT854 s22).
+A national critical information infrastructure entity which fails to comply with the directions of the Chief Executive under subsection (3), (4), (5) or (6) commits an offence and shall, on conviction, be liable to a fine not exceeding one hundred thousand ringgit [act854:s22:1](ACT854 s22).
 
 **Key facts expected:**
 - Risk assessment at least once a year; audit at least once every two years (PUA219 reg 3)
@@ -191,11 +197,11 @@ Not found in the provided documents.
 
 ## M06 (multi_hop): The regulator told us to fix our systems after an incident and we didn't. Could our CEO personally be charged?
 
-**Result:** FULL #1 · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s35:1 act854:s58:1 act854:s23:1 act854:s63:1 pua220:r2:1 · **Cited:** act854:s35:1
 
-If a national critical information infrastructure entity fails to comply with a directive of the Chief Executive under subsection (4) of section 35 of the Act, it commits an offence and is liable to a fine not exceeding two hundred thousand ringgit or imprisonment for a term not exceeding three years or both [act854:s35:1].
+If a national critical information infrastructure entity fails to comply with a directive from the Chief Executive regarding measures to respond to or recover from a cyber security incident, it commits an offence and can be liable to a fine not exceeding two hundred thousand ringgit or imprisonment for a term not exceeding three years or both [act854:s35:1:5].
 
 **Key facts expected:**
 - After an incident is confirmed, the Chief Executive may issue a directive on response, recovery and prevention (s35(4))
@@ -204,18 +210,11 @@ If a national critical information infrastructure entity fails to comply with a 
 
 ## M07 (multi_hop): Our cyber security service provider lost its licence. Can it challenge that, and can it keep working in the meantime?
 
-**Result:** PART 1/2 (missing ACT854 s53) · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** PART 1/2 (missing ACT854 s53) · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s27:1 act854:s30:1 act854:s31:1 act854:s33:1 act854:s29:1 · **Cited:** act854:s33:1
 
-The Chief Executive may revoke or suspend a licence issued under section 29 if the Chief Executive is satisfied that [act854:s33:1]:
-(a) the licensee has failed to comply with any conditions of the licence;
-(b) the licence has been obtained by fraud or misrepresentation;
-(c) a circumstance existed at the time the licence was issued or renewed that the Chief Executive was unaware of, which would have caused the Chief Executive to refuse to issue or renew the licence if the Chief Executive had been aware of the circumstance at that time;
-(d) the licensee has ceased to carry on the business in respect of which he is licenced under this Act;
-(e) the licensee has been adjudged a bankrupt or has gone into liquidation or is being wound up;
-(f) the licensee has been convicted of an offence under this Act or an offence involving fraud, dishonesty or moral turpitude; or
-(g) the revocation or suspension is in the interest of the public or national security.
+The Chief Executive may revoke or suspend a licence issued under section 29 if the Chief Executive is satisfied that [act854:s33:1]. The grounds for revocation or suspension include, but are not limited to, the licensee failing to comply with any conditions of the licence, the licence being obtained by fraud or misrepresentation, a circumstance existing at the time of issuance or renewal that the Chief Executive was unaware of, the licensee ceasing to carry on the licensed business, the licensee being adjudged bankrupt or in liquidation or being wound up, a conviction for an offence under this Act or an offence involving fraud, dishonesty or moral turpitude, or the revocation or suspension being in the interest of the public or national security [act854:s33:1].
 
 **Key facts expected:**
 - It may appeal in writing to the Minister within thirty days after being informed of the revocation; the Minister may confirm or set aside the decision (s53)
@@ -236,11 +235,11 @@ Not found in the provided documents.
 
 ## M09 (multi_hop): Who decides whether my company counts as an NCII entity, and can that status be taken away later?
 
-**Result:** PART 1/2 (missing ACT854 s19) · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** PART 1/2 (missing ACT854 s19) · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s23:1 act854:s17:1 act854:s22:1 act854:s21:1 act854:s20:1 · **Cited:** act854:s17:1
 
-A national critical information infrastructure sector lead may designate a Government Entity or person as a national critical information infrastructure entity if the national critical information infrastructure sector lead is satisfied that the Government Entity or person owns or operates a national critical information infrastructure [act854:s17:1]. The national critical information infrastructure sector lead shall keep and maintain a register of the national critical information infrastructure entities which have been designated under this section [act854:s17:1]. A national critical information infrastructure entity which has been designated under this section shall by notice in writing notify its national critical information infrastructure sector lead without delay if the national critical information infrastructure entity is of the opinion that the computer or computer system owned or operated by the national critical information infrastructure entity has ceased to be a national critical information infrastructure, or no longer owns or operates any national critical information infrastructure [act854:s17:1:6].
+A national critical information infrastructure sector lead may designate a Government Entity or person as a national critical information infrastructure entity if the national critical information infrastructure sector lead is satisfied that the Government Entity or person owns or operates a national critical information infrastructure [act854:s17:1]. The national critical information infrastructure entity which has been designated under this section shall by notice in writing notify its national critical information infrastructure sector lead without delay if the national critical information infrastructure entity is of the opinion that the computer or computer system owned or operated by the national critical information infrastructure entity has ceased to be a national critical information infrastructure or the national critical information infrastructure entity no longer owns or operates any national critical information infrastructure [act854:s17:1:6].
 
 **Key facts expected:**
 - The NCII sector lead designates, if satisfied the company owns or operates an NCII (s17(1))
@@ -248,11 +247,11 @@ A national critical information infrastructure sector lead may designate a Gover
 
 ## M10 (multi_hop): Our IT vendor offers security testing services to other companies. Does it need a licence, and what records must it keep?
 
-**Result:** FULL #1 · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s27:1 act854:s32:1 act854:s34:1 act854:s63:1 act854:s31:1 · **Cited:** act854:s27:1 act854:s34:1 act854:s32:1
 
-To provide any cyber security service, a person must hold a licence issued under this Part [act854:s27:1]. A person must hold a licence to advertise, or in any way hold himself out as a provider of a cyber security service [act854:s27:1]. A licence may be transferred to any other person with the approval of the Chief Executive if an application in writing is made by the licensee and the Chief Executive is satisfied that the person to whom the licence is to be transferred has the necessary financial and technical resources to comply with the conditions of the licence [act854:s34:1]. A licensee shall, on each occasion where the licensee is engaged to provide cyber security service, keep and maintain the following records: the name and address of the person engaging the licensee for the cyber security service, the name of the person providing the cyber security service on behalf of the licensee, if any, the date and time of cyber security service that was provided by the licensee or other person on behalf of the licensee, details of the type of cyber security service provided, and such other particulars as may be determined by the Chief Executive [act854:s32:1].
+To provide any cyber security service, a person must hold a licence issued under this Part [act854:s27:1]. A person must hold a licence to advertise, or in any way hold himself out as a provider of a cyber security service [act854:s27:1]. A licence may be transferred to any other person with the approval of the Chief Executive if an application in writing is made by the licensee and the Chief Executive is satisfied that the person to whom the licence is to be transferred has the necessary financial and technical resources to comply with the conditions of the licence [act854:s34:1]. A licensee shall, on each occasion where the licensee is engaged to provide cyber security service, keep and maintain the following records: the name and address of the person engaging the licensee for the cyber security service; the name of the person providing the cyber security service on behalf of the licensee, if any; the date and time of cyber security service that was provided by the licensee or other person on behalf of the licensee; details of the type of cyber security service provided; and such other particulars as may be determined by the Chief Executive [act854:s32:1].
 
 **Key facts expected:**
 - A licence is needed to provide a cyber security service prescribed by the Minister (s27(1), (2)); whether security testing is prescribed is not stated in the corpus
@@ -283,7 +282,7 @@ Not found in the provided documents.
 
 ## N03 (not_in_corpus): Who is the current Chief Executive of the National Cyber Security Agency?
 
-**Result:** WRONG · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** WRONG · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s4:11 act854:long_title:1 act854:s5:1 act854:s15:1 act854:s10:1 · **Cited:** act854:s4:11
 
@@ -294,7 +293,7 @@ The Chief Executive is the Chief Executive of the National Cyber Security Agency
 
 ## N04 (not_in_corpus): How much is the fee for a cyber security service provider licence?
 
-**Result:** WRONG · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** WRONG · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s29:1 act854:s27:1 act854:s30:1 act854:s31:1 act854:s34:1 · **Cited:** act854:s29:1 act854:s30:1
 
@@ -308,7 +307,7 @@ The application for a licence to provide a cyber security service must be accomp
 
 **Result:** OK · said not found · **Label:** Nothing to check: no answer was found in the documents
 
-**Given to the writer:** act854:s4:7 act854:s4:10 act854:s3:1 act854:s63:1 act854:s4:20 · **Cited:** none
+**Given to the writer:** act854:s4:10 act854:s4:7 act854:s3:1 act854:s63:1 act854:s4:20 · **Cited:** none
 
 Not found in the provided documents.
 
@@ -317,7 +316,7 @@ Not found in the provided documents.
 
 ## A01 (ambiguous): When does the law come into force?
 
-**Result:** FULL #1 · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** pua220:r1:1 pua219:r1:1 act854:s1:1 act854:s55:1 act854:s64:1 · **Cited:** act854:s1:1 pua220:r1:1 pua219:r1:1
 
@@ -330,11 +329,11 @@ The Cyber Security Act 2024 comes into operation on a date to be appointed by th
 
 ## A02 (ambiguous): What is the penalty?
 
-**Result:** – · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** – · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s59:1 act854:s3:1 act854:s34:1 act854:s58:1 act854:s33:1 · **Cited:** act854:s34:1
 
-A fine not exceeding two hundred thousand ringgit or imprisonment for a term not exceeding three years or both can be imposed for contravening the rules regarding the transfer or assignment of a licence [act854:s34:2].
+A fine not exceeding two hundred thousand ringgit or imprisonment for a term not exceeding three years or both can be imposed for contravening subsection (1) of section 34 [act854:s34:2].
 
 **Key facts expected:**
 - Underspecified: penalties differ by offence
@@ -342,7 +341,7 @@ A fine not exceeding two hundred thousand ringgit or imprisonment for a term not
 
 ## A03 (ambiguous): Do I have to report it?
 
-**Result:** PART 1/2 (missing ACT854 s17) · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** PART 1/2 (missing ACT854 s17) · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s23:1 act854:s51:1 pua220:r2:1 act854:s48:1 act854:s35:1 · **Cited:** act854:s23:1
 
@@ -366,11 +365,11 @@ Not found in the provided documents.
 
 ## A05 (ambiguous): Are we covered by the Act?
 
-**Result:** MISS · answered · **Label:** Not checked: traditional mode has no source check
+**Result:** MISS · answered · **Label:** Not checked: no automated source check
 
 **Given to the writer:** act854:s1:1 act854:s4:4 act854:s59:1 act854:s3:1 act854:s26:1 · **Cited:** act854:s3:1
 
-This Act has effect outside as well as within Malaysia, regardless of nationality or citizenship [act854:s3:1]. It also applies if the national critical information infrastructure is wholly or partly in Malaysia for the purposes of subsection (1) of section 3 [act854:s3:1].
+This Act shall have effect outside as well as within Malaysia in relation to any person, whatever his nationality or citizenship [act854:s3:1].
 
 **Key facts expected:**
 - Underspecified: depends on the organisation's role

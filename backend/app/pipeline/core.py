@@ -46,8 +46,7 @@ class State(TypedDict, total=False):
     passed: list[Retrieved]             # chunks actually given to the writer
     retry_count: int
     llm_calls: int
-    answer: str                         # after grounding: failing sentences carry a visible flag
-    label: str                          # grounding result shown with the answer
+    answer: str                         # the writer's text, with [chunk id] citation markers
     status: str                         # answered | partial | not_found
     route: str                          # agentic planner: out_of_scope | complex
     messages: Annotated[list, add_messages]  # tool_agent's AIMessage + ToolNode's ToolMessage (new_prd.md)
@@ -148,7 +147,7 @@ def not_found(label: str, started: float, llm_calls: int, retries: int = 0, extr
 def answer(text: str, chunks: list[Retrieved], label: str, started: float, llm_calls: int,
            retries: int = 0, status: str = "answered", extra: str = "") -> Iterator[Event]:
     """Final events for a written answer. Only chunks given to the writer can be cited.
-    `extra` is text written by code (the staff contact list), appended after the source check."""
+    `extra` is text written by code (the staff contact list), appended after the writer's answer."""
     by_id = {c.id: c for c in chunks}
     citations = [{"chunk_id": i, "document": by_id[i].short_name, "section": by_id[i].label,
                   "page": by_id[i].pages} for i in cited_ids(text, by_id) if i in by_id]

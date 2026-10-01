@@ -115,15 +115,12 @@ STATUS = {"answered": "answered", "partial": "partial answer", "not_found": "sai
 
 
 def answer_cell(r: dict) -> str:
-    """Per-question result for one mode: evidence given to the writer, final status, source-check result."""
+    """Per-question result for one mode: evidence given to the writer, final status."""
     status = STATUS.get(r["status"], r["status"])
     if r["category"] == "not_in_corpus":
         return f"{'OK' if r['status'] in DECLINED else 'WRONG'} · {status}"
     evidence = cell(r["outcome"]) if r["outcome"] else "–"
-    check = ("" if not r["label"] or r["status"] == "not_found" else
-             " · check passed" if r["label"].startswith("Passed") else
-             " · check flagged" if "flagged" in r["label"] else "")
-    return f"{evidence} · {status}{check}"
+    return f"{evidence} · {status}"
 
 
 def e2e_metrics(sel: list[dict]) -> dict[str, str]:
@@ -131,9 +128,7 @@ def e2e_metrics(sel: list[dict]) -> dict[str, str]:
     graded = [r for r in sel if r["outcome"]]  # questions with known answer sections
     off = [r for r in sel if r["category"] == "not_in_corpus"]
     answerable = [r for r in sel if r["category"] in ("single_hop", "multi_hop")]
-    given = [r for r in sel if r["status"] in ("answered", "partial")]
     lat = [r["latency_ms"] / 1000 for r in sel if r["latency_ms"] is not None]
-    checked = any(r["label"].startswith(("Passed", "Automated", "Source check")) for r in given)
 
     def full(rows: list[dict]) -> str:
         return rate(sum(r["outcome"]["level"] == "full" for r in rows), len(rows))
@@ -143,8 +138,6 @@ def e2e_metrics(sel: list[dict]) -> dict[str, str]:
         "Multi-hop questions: FULL": full([r for r in graded if r["category"] == "multi_hop"]),
         "Not-in-docs questions declined (OK)": rate(sum(r["status"] in DECLINED for r in off), len(off)),
         "Answerable questions wrongly declined": rate(sum(r["status"] in DECLINED for r in answerable), len(answerable)),
-        "Passed automated source check (of answers given)":
-            rate(sum(r["label"].startswith("Passed") for r in given), len(given)) if checked else "no check in this mode",
         "Citations pointing at a needed section":
             rate(sum(r["cited_expected"] for r in graded), sum(r["cited"] for r in graded)),
         "Latency p50 / p95": f"{percentile(lat, .5):.1f} s / {percentile(lat, .95):.1f} s",

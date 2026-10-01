@@ -67,10 +67,10 @@ def test_reports_render_tables_without_emoji() -> None:
             e2e_row(qs[1], "agentic", "not_found", [], "Nothing to check: no answer was found in the documents")]
     md = e2e_report(rows, ["traditional", "agentic"], qs, ["# B"])
     assert "| Not-in-docs questions declined (OK) | 0/1 (0%) | 1/1 (100%) |" in md
-    assert "| Passed automated source check (of answers given) | no check in this mode | 1/1 (100%) |" in md
+    assert "source check" not in md  # no answer check runs in either mode any more
     assert "| not_in_corpus (1) | OK 0/1 (0%) | OK 1/1 (100%) |" in md
-    # the source check alone is not a difference between the modes; the N01 status is
-    assert "| S01 | How fast? | PUA220 reg 2 | FULL #1 · answered | FULL #1 · answered · check passed |  |" in md
+    # same evidence and status: no difference between the modes; the N01 status is
+    assert "| S01 | How fast? | PUA220 reg 2 | FULL #1 · answered | FULL #1 · answered |  |" in md
     assert "| N01 | PDPA? | – | WRONG · answered | OK · said not found | * |" in md
     assert not any(ord(ch) > 0x2600 for ch in md)  # no emoji
 

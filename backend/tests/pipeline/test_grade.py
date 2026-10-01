@@ -10,7 +10,7 @@ def test_sufficient_goes_to_generate_with_retrieved_chunks_first(settings, world
     world.by_query = {"What is the penalty?": [S23]}
     world.llm = FakeLLM(grades=[{"sufficient": True, "missing": ""}])
     events = run(settings)
-    assert world.llm.calls == ["plan", "grade", "generate", "check"]
+    assert world.llm.calls == ["plan", "grade", "generate"]
     gen = [d for n, d in events if n == "trace" and d["node"] == "generate" and d["status"] == "start"][0]
     assert gen["data"]["chunks"] == ["act854:s23:1"]
     assert final(events)["done"] == {"status": "answered"}

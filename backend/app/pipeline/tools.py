@@ -27,5 +27,5 @@ def lookup_staff(topics: list[str]) -> str:
                               {"topics": topics, "names": [r[0] for r in rows]}))
     if not rows:
         return ""
-    return "\n".join(["**Who to contact** (fictional demo staff directory; not part of the source check):",
+    return "\n".join(["**Who to contact** (fictional demo staff directory; copied from the table, not from the law):",
                       *(f"- {name}, {role} · {email} · {phone} · {hours}" for name, role, email, phone, hours in rows)])

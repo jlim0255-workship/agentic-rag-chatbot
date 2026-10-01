@@ -118,17 +118,15 @@ def test_agentic_mode_streams_in_prd_order(client: TestClient, monkeypatch: pyte
     monkeypatch.setattr("app.pipeline.nodes.tool_agent.ChatOllama", lambda **_k: FakeToolModel())
     plan = json.dumps({"sub_queries": [{"query": "penalty for not notifying"}]})
     grade = json.dumps({"sufficient": True, "missing": ""})
-    check = json.dumps({"supported": [True]})
     monkeypatch.setattr(ollama, "chat", lambda *a, format=None, **k:
-                        ((plan if "sub_queries" in format["properties"] else
-                          check if "supported" in format["properties"] else grade) if format
+                        ((plan if "sub_queries" in format["properties"] else grade) if format
                          else "The fine is up to RM500,000 [act854:s23:1]."))
     events = ask(client, mode="agentic")
     names = [n for n, _ in events]
     assert set(names[:-4]) == {"trace"} and names[-4:] == ["answer", "citations", "metrics", "done"]
     assert dict(events)["done"] == {"status": "answered"}
-    assert dict(events)["metrics"]["llm_calls"] == 5  # plan, tool choice, grade, generate, grounding check
-    assert dict(events)["answer"]["label"] == "Passed automated source check"
+    assert dict(events)["metrics"]["llm_calls"] == 4  # plan, tool choice, grade, generate
+    assert dict(events)["answer"]["label"] == flow.UNCHECKED_LABEL
 
 
 def test_empty_question_rejected(client: TestClient) -> None:

@@ -23,15 +23,15 @@ def test_enough_evidence_goes_straight_to_generate(settings: Settings, world) ->
     world.llm = FakeLLM(grades=[grade(["act854:s23:1"], ["act854:s99:1"])])
     events = run(settings)
     assert trace_nodes(events) == ["planner:start", "planner:end", "tool_agent:start", "tool_agent:end", "retrieve:start", "retrieve:end", "grade:start", "grade:end",
-                                   "generate:start", "generate:end", "grounding:start", "grounding:end"]
+                                   "generate:start", "generate:end"]
     assert [n for n, _ in events if n != "trace"] == ["answer", "citations", "metrics", "done"]
     out = final(events)
     assert out["done"] == {"status": "answered"}
-    assert out["metrics"]["llm_calls"] == 5 and out["metrics"]["retries"] == 0
+    assert out["metrics"]["llm_calls"] == 4 and out["metrics"]["retries"] == 0
     gen_start = [d for n, d in events if n == "trace" and d["node"] == "generate" and d["status"] == "start"][0]
     # steer, don't delete: verified chunk first, the other retrieved chunk still reaches the writer
     assert gen_start["data"]["chunks"] == ["act854:s23:1", "act854:s99:1"]
-    assert out["answer"]["label"] == "Passed automated source check"
+    assert out["answer"]["label"] == flow.UNCHECKED_LABEL  # no answer check runs; never "verified"
 
 
 def test_insufficient_grade_triggers_rewrite_then_retrieve_with_new_query(settings: Settings, world) -> None:
@@ -48,7 +48,7 @@ def test_insufficient_grade_triggers_rewrite_then_retrieve_with_new_query(settin
                              "offence of contravening the notification duty"]
     retrieve_ends = [d for n, d in events if n == "trace" and d["node"] == "retrieve" and d["status"] == "end"]
     assert [c["id"] for c in retrieve_ends[1]["data"]["queries"][0]["chunks"]] == ["act854:s23:1", "act854:s24:1"]
-    assert world.llm.calls == ["plan", "grade", "rewrite", "grade", "generate", "check"]
+    assert world.llm.calls == ["plan", "grade", "rewrite", "grade", "generate"]
     out = final(events)
     assert out["done"] == {"status": "answered"} and out["metrics"]["retries"] == 1
     rewrite_end = [d for n, d in events if n == "trace" and d["node"] == "rewrite" and d["status"] == "end"][0]
@@ -88,7 +88,7 @@ def test_grade_invalid_twice_falls_back_to_all_relevant(settings: Settings, worl
     world.by_query = {"What is the penalty?": [chunk("act854:s23:1")]}
     world.llm = FakeLLM(grades=["not json", '{"needs": "wrong"}'])
     events = run(settings)
-    assert world.llm.calls == ["plan", "grade", "grade", "generate", "check"]
+    assert world.llm.calls == ["plan", "grade", "grade", "generate"]
     grade_end = [d for n, d in events if n == "trace" and d["node"] == "grade" and d["status"] == "end"][0]
     assert grade_end["data"]["sub_queries"][0]["fallback"] is True
     assert final(events)["done"] == {"status": "answered"}

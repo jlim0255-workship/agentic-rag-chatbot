@@ -12,17 +12,20 @@ AGENTIC (PRD 10): the LLM's judgements choose the route; code enforces the limit
                tool_agent ─┬─ calls lookup_staff ─► tools (ToolNode, no LLM) ─┐   staff tool (new_prd.md):
                 (LLM)      └─ no tool call ───────────────────────────────────┤   its list is appended to the
                                                                               ▼   final answer by code
-               retrieve ─► grade ─┬─ every need covered ───────────────► generate ─► grounding ─► end
-               (no LLM)   (LLM)   ├─ needs missing, retries left ─► rewrite ─► back to retrieve
+               retrieve ─► grade ─┬─ sufficient ─────────────────────► generate ─► end
+               (no LLM)   (LLM)   ├─ not sufficient, retries left ─► rewrite ─► back to retrieve
                                   │                                  (LLM)
-                                  └─ needs missing, no retries left ─► not_found (no LLM)
+                                  └─ not sufficient, no retries left ─► not_found (no LLM)
                                                                        ├─ some parts found ─► generate
                                                                        └─ nothing found ────► end ("not found")
+
+No answer check runs after generate in either mode (the grounding check was removed; its small-model
+judge mostly flagged correct sentences). Citations are still filtered by code in core.answer.
 
 Where things live:
     flow.py        this map, the decisions between steps (after_*), and the runner (run)
     core.py        state, time budget, trace/SSE events, citation parsing (shared plumbing)
-    nodes/*.py     one step each: planner, tool_agent, retrieve, grade, rewrite, not_found, generate, grounding
+    nodes/*.py     one step each: planner, tool_agent, retrieve, grade, rewrite, not_found, generate
     tools.py       tools the agent may call (lookup_staff), run by LangGraph's ToolNode
 """
 from __future__ import annotations
@@ -40,7 +43,6 @@ from app.pipeline import core
 from app.pipeline.core import Ctx, Event, State, new_state, trace
 from app.pipeline.nodes.generate import generate_node
 from app.pipeline.nodes.grade import grade_node
-from app.pipeline.nodes.grounding import grounding_node
 from app.pipeline.nodes.not_found import not_found_node
 from app.pipeline.nodes.planner import planner_node
 from app.pipeline.nodes.retrieve import retrieve_node
@@ -48,7 +50,7 @@ from app.pipeline.nodes.rewrite import rewrite_node
 from app.pipeline.nodes.tool_agent import tool_agent_node
 from app.pipeline.tools import lookup_staff
 
-UNCHECKED_LABEL = "Not checked: traditional mode has no source check"
+UNCHECKED_LABEL = "Not checked: no automated source check"
 FIXED_REPLIES = {  # route -> (text, label); written by code so the model never answers from its own knowledge
     "out_of_scope": ("I can only answer questions about Malaysia's Cyber Security Act 2024 and its two "
                      "regulations (P.U.(A) 219/2024 and P.U.(A) 220/2024), citing the exact sections. For example: "
@@ -97,8 +99,7 @@ def traditional_graph(ctx: Ctx):
 def agentic_graph(ctx: Ctx):
     g = StateGraph(State)
     for name, node in [("planner", planner_node), ("retrieve", retrieve_node), ("grade", grade_node),
-                       ("rewrite", rewrite_node), ("not_found", not_found_node), ("generate", generate_node),
-                       ("grounding", grounding_node)]:
+                       ("rewrite", rewrite_node), ("not_found", not_found_node), ("generate", generate_node)]:
         g.add_node(name, partial(node, ctx=ctx))
     g.add_node("tool_agent", partial(tool_agent_node, ctx=ctx))
     g.add_node("tools", ToolNode([lookup_staff]))
@@ -110,15 +111,14 @@ def agentic_graph(ctx: Ctx):
     g.add_conditional_edges("grade", partial(after_grade, settings=ctx.settings), ["generate", "rewrite", "not_found"])
     g.add_edge("rewrite", "retrieve")
     g.add_conditional_edges("not_found", after_not_found, ["generate", END])
-    g.add_edge("generate", "grounding")
-    g.add_edge("grounding", END)
+    g.add_edge("generate", END)
     return g.compile()
 
 
 def recursion_limit(settings: Settings) -> int:
     """Longest agentic path: planner, tool_agent, tools, (retrieve, grade, rewrite) per retry, final retrieve,
-    grade, not_found, generate, grounding. LangGraph raises if a run ever exceeds it."""
-    return 3 + 3 * settings.max_retries + 5 + 1
+    grade, not_found, generate. LangGraph raises if a run ever exceeds it."""
+    return 3 + 3 * settings.max_retries + 4 + 1
 
 
 def contacts(state: State) -> str:
@@ -159,6 +159,5 @@ def run(question: str, mode: str, settings: Settings) -> Iterator[Event]:
     if final["status"] == "not_found" or "answer" not in final:
         yield from core.not_found(core.NOT_FOUND_LABEL, ctx.started, calls, retries, contacts(final))
         return
-    label = final.get("label", UNCHECKED_LABEL)  # only agentic mode runs the grounding check
-    yield from core.answer(final["answer"], final["passed"], label, ctx.started, calls, retries,
+    yield from core.answer(final["answer"], final["passed"], UNCHECKED_LABEL, ctx.started, calls, retries,
                            status=final["status"], extra=contacts(final))

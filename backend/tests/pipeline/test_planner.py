@@ -113,7 +113,7 @@ def test_removed_routes_are_rejected_and_fall_back_to_complex(settings, world) -
     world.llm = FakeLLM(plans=[{"route": "direct", "sub_queries": []}, {"route": "simple", "sub_queries": []}],
                         grades=[grade(["act854:s23:1"])])
     out = final(run(settings))
-    assert world.llm.calls == ["plan", "plan", "grade", "generate", "check"]
+    assert world.llm.calls == ["plan", "plan", "grade", "generate"]
     assert out["done"] == {"status": "answered"}
 
 
@@ -129,4 +129,4 @@ def test_invalid_plan_falls_back_to_complex_route(settings, world) -> None:
     world.by_query = {"What is the penalty?": [chunk("act854:s23:1")]}
     world.llm = FakeLLM(plans=["not json", "still not json"], grades=[grade(["act854:s23:1"])])
     run(settings)
-    assert world.llm.calls == ["plan", "plan", "grade", "generate", "check"]
+    assert world.llm.calls == ["plan", "plan", "grade", "generate"]

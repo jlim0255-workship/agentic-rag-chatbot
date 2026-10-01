@@ -19,12 +19,11 @@ def chunk(id_: str, section: str = "23") -> Retrieved:
 
 class FakeLLM:
     """Scripted replies per call type, told apart by the output schema: plan ('sub_queries'),
-    grade ('needs'), grounding check ('supported'), rewrite (other schema), generate (no schema).
-    Defaults: plan = one sub-query equal to the question; check = every sentence supported."""
+    grade ('sufficient'), rewrite (other schema), generate (no schema).
+    Default plan = one sub-query equal to the question."""
 
-    def __init__(self, grades=(), rewrites=(), answer="The fine is RM500,000 [act854:s23:1].", plans=None,
-                 checks=()):
-        self.grades, self.rewrites, self.answer, self.checks = list(grades), list(rewrites), answer, list(checks)
+    def __init__(self, grades=(), rewrites=(), answer="The fine is RM500,000 [act854:s23:1].", plans=None):
+        self.grades, self.rewrites, self.answer = list(grades), list(rewrites), answer
         self.plans = list(plans) if plans is not None else None
         self.calls: list[str] = []
 
@@ -33,14 +32,10 @@ class FakeLLM:
             kind = "generate"
         else:
             props = format["properties"]
-            kind = ("plan" if "sub_queries" in props else "grade" if "sufficient" in props
-                    else "check" if "supported" in props else "rewrite")
+            kind = "plan" if "sub_queries" in props else "grade" if "sufficient" in props else "rewrite"
         self.calls.append(kind)
         if kind == "generate":
             return self.answer
-        if kind == "check":
-            n = format["properties"]["supported"]["minItems"]
-            return json.dumps({"supported": self.checks.pop(0) if self.checks else [True] * n})
         if kind == "plan":
             if self.plans is None:
                 question = prompt.split("Question: ", 1)[1].splitlines()[0]
