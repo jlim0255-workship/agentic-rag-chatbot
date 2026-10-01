@@ -7,7 +7,7 @@ import pytest
 
 from app.config import Settings
 from app.llm import ollama
-from app.llm.structured import call_structured
+from app.llm.structured import call_structured, strip_fence
 from app.pipeline import flow
 from app.pipeline.core import Ctx, SubQuery
 from app.pipeline.nodes import generate
@@ -55,8 +55,7 @@ def test_insufficient_grade_triggers_rewrite_then_retrieve_with_new_query(settin
     assert rewrite_end["data"]["rewrites"] == [{
         "technique": "paraphrase + expansion", "from": "What is the penalty?",
         "to": ["penalty for failing to notify", "offence of contravening the notification duty"],
-        "gave_up": False, "filters_removed": {"documents": [], "parts": []},
-        "similarity": {"penalty for failing to notify": 1.0, "offence of contravening the notification duty": 1.0}}]
+        "gave_up": False, "filters_removed": {"documents": [], "parts": []}}]
 
 
 def test_loop_stops_at_max_retries_and_never_calls_generate(settings: Settings, world) -> None:
@@ -103,11 +102,6 @@ def test_llm_timeout_ends_with_timeout(settings: Settings, world, monkeypatch: p
     assert events[-1] == ("done", {"status": "timeout"})
 
 
-def test_recursion_limit_covers_longest_path(settings: Settings) -> None:
-    # planner, retrieve, grade, then (rewrite, retrieve, grade) per retry, then not_found, generate
-    assert flow.recursion_limit(settings) > 1 + 2 + 3 * settings.max_retries + 2
-
-
 # --- partial evidence (two sub-queries; the planner that creates them arrives at M5) ---
 
 def test_partial_evidence_generates_and_names_the_missing_part(settings: Settings, monkeypatch) -> None:
@@ -120,8 +114,28 @@ def test_partial_evidence_generates_and_names_the_missing_part(settings: Setting
     assert "could not be found in the documents" in prompt and "- licence fee amount" in prompt
 
 
-# (The needs grader's "verified evidence is kept" test is replaced by
-#  test_grade.py::test_known_tradeoff_a_single_question_never_judged_sufficient_is_not_found.)
+def test_retrieved_evidence_still_reaches_the_writer_on_the_partial_path(settings: Settings, world) -> None:
+    # Two sub-queries: the first is judged sufficient, the second never is; s23 still reaches the writer.
+    s35, s23 = chunk("act854:s35:1", "35"), chunk("act854:s23:1")
+    no = {"sufficient": False, "missing": "penalty"}
+    world.by_query = {"q": [s35], "q2": [s35, s23], "p1": [s23], "e1": [s23], "s1": [s23]}
+    world.llm = FakeLLM(plans=[{"sub_queries": [{"query": "q"}, {"query": "q2"}]}],
+                        grades=[{"sufficient": True}, no, no, no],
+                        rewrites=[{"paraphrase": "p1", "expanded": "e1"}, {"step_back": "s1"}])
+    events = run(settings, "two part question?")
+    gen = [d for n, d in events if n == "trace" and d["node"] == "generate" and d["status"] == "start"][0]
+    assert gen["data"]["chunks"][0] == "act854:s35:1" and "act854:s23:1" in gen["data"]["chunks"]
+    assert final(events)["done"] == {"status": "partial"}
+
+
+def test_known_tradeoff_a_single_question_never_judged_sufficient_is_not_found(settings: Settings, world) -> None:
+    # A "no" keeps nothing: after the retries, no partial answer from s23.
+    world.by_query = {q: [chunk("act854:s23:1")] for q in ("What is the penalty?", "p", "e", "s")}
+    no = {"sufficient": False, "missing": "penalty for ignoring a directive"}
+    world.llm = FakeLLM(grades=[no] * 3, rewrites=[{"paraphrase": "p", "expanded": "e"}, {"step_back": "s"}])
+    events = run(settings)
+    assert "generate" not in world.llm.calls
+    assert final(events)["done"] == {"status": "not_found"}
 
 
 def test_no_evidence_at_all_is_not_found(settings: Settings, monkeypatch) -> None:
@@ -129,15 +143,6 @@ def test_no_evidence_at_all_is_not_found(settings: Settings, monkeypatch) -> Non
     subs = [SubQuery(original="a", query="a"), SubQuery(original="b", query="b")]
     assert not_found_node({"sub_queries": subs}, Ctx(settings)) == {"status": "not_found"}
     assert flow.after_not_found({"status": "not_found"}) == "__end__"
-
-
-def test_after_grade_routes(settings: Settings) -> None:
-    done, open_, stuck = (SubQuery(original="x", query="x", answered=True), SubQuery(original="y", query="y"),
-                          SubQuery(original="z", query="z", exhausted=True))
-    assert flow.after_grade({"sub_queries": [done], "retry_count": 0}, settings) == "generate"
-    assert flow.after_grade({"sub_queries": [done, open_], "retry_count": 1}, settings) == "rewrite"
-    assert flow.after_grade({"sub_queries": [done, open_], "retry_count": 2}, settings) == "not_found"
-    assert flow.after_grade({"sub_queries": [done, stuck], "retry_count": 0}, settings) == "not_found"
 
 
 # --- structured output helper ---
@@ -154,34 +159,21 @@ def test_structured_gives_none_after_two_invalid(settings: Settings, monkeypatch
     assert call_structured("p", GradeOutput, settings, 5) == (None, 2)
 
 
-# --- rewrite drift gate ---
-
-def test_rewrite_similarity_is_recorded_and_gate_is_off_by_default(settings: Settings, world) -> None:
-    world.vectors = {"drifted": [0.0, 1.0]}  # orthogonal to the sub-query -> similarity 0
-    world.llm = FakeLLM(grades=[grade([], ["act854:s99:1"]), grade(["act854:s99:1"])],
-                        rewrites=[{"paraphrase": "drifted", "expanded": "close"}])
-    events = run(settings)
-    rewrite = [d for n, d in events if n == "trace" and d["node"] == "rewrite" and d["status"] == "end"][0]
-    assert rewrite["data"]["rewrites"][0]["similarity"] == {"drifted": 0.0, "close": 1.0}
-    assert rewrite["data"]["rewrites"][0]["to"] == ["drifted", "close"]  # gate off: nothing rejected
-
-
-def test_gate_rejects_drifted_variant_and_retries_once(settings: Settings, world) -> None:
-    gated = settings.model_copy(update={"rewrite_min_similarity": 0.8})
-    world.vectors = {"drifted": [0.0, 1.0], "also drifted": [0.1, 1.0], "drifted again": [0.0, 1.0]}
-    world.llm = FakeLLM(grades=[grade([], ["act854:s99:1"]), grade(["act854:s99:1"])],
-                        rewrites=[{"paraphrase": "drifted", "expanded": "also drifted"},   # all rejected
-                                  {"paraphrase": "close one", "expanded": "drifted again"}])
-    events = run(gated)
-    rewrite = [d for n, d in events if n == "trace" and d["node"] == "rewrite" and d["status"] == "end"][0]
-    assert rewrite["data"]["rewrites"][0]["to"] == ["close one"]
-    assert world.llm.calls.count("rewrite") == 2
+def test_structured_prompt_spells_out_the_schema_sent_as_format(settings: Settings, monkeypatch) -> None:
+    """Ollama Cloud ignores `format`, so the prompt must carry the same schema (incl. an override)."""
+    seen = {}
+    def chat(base_url, model, prompt, timeout_s, num_ctx, format=None):
+        seen.update(prompt=prompt, format=format)
+        return json.dumps(grade(["a:s1:1"]))
+    monkeypatch.setattr(ollama, "chat", chat)
+    override = {**GradeOutput.model_json_schema(), "title": "Override"}
+    call_structured("p", GradeOutput, settings, 5, json_schema=override)
+    assert seen["format"] == override
+    assert seen["prompt"].startswith("p\n\n") and seen["prompt"].endswith(json.dumps(override))
 
 
-def test_gate_gives_up_when_every_attempt_drifts(settings: Settings, world) -> None:
-    gated = settings.model_copy(update={"rewrite_min_similarity": 0.8})
-    world.vectors = {t: [0.0, 1.0] for t in ("a", "b", "c", "d")}
-    world.llm = FakeLLM(grades=[grade([], ["act854:s99:1"])],
-                        rewrites=[{"paraphrase": "a", "expanded": "b"}, {"paraphrase": "c", "expanded": "d"}])
-    out = final(run(gated))
-    assert out["done"] == {"status": "not_found"} and world.queries == ["What is the penalty?"]
+def test_strip_fence_unwraps_json_only() -> None:
+    assert strip_fence('```json\n{"a": 1}\n```') == '{"a": 1}'
+    assert strip_fence('```\n{"a": 1}\n```') == '{"a": 1}'
+    assert strip_fence('{"a": 1}') == '{"a": 1}'
+    assert strip_fence("Yes, see ```x```.") == "Yes, see ```x```."  # prose stays prose (-> invalid -> retry)

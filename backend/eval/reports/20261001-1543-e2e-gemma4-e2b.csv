@@ -1,0 +1,61 @@
+id,category,mode,status,outcome,label,cited,cited_expected,latency_ms,llm_calls,retries,passed,citations
+S01,single_hop,traditional,answered,full,Not checked: no automated source check,1,1,9391,1,0,pua220:r2:1 act854:s23:1 act854:s35:1 act854:s20:1 act854:s22:1,pua220:r2:1
+S02,single_hop,traditional,answered,full,Not checked: no automated source check,2,1,9265,1,0,pua219:r3:1 act854:s22:1 pua219:r1:1 act854:s63:1 pua219:r2:1,act854:s22:1 pua219:r3:1
+S03,single_hop,traditional,answered,full,Not checked: no automated source check,1,1,8750,1,0,pua220:r3:1 pua220:r2:1 act854:s4:8 act854:s35:1 act854:s23:1,pua220:r3:1
+S04,single_hop,traditional,not_found,miss,Nothing to check: no answer was found in the documents,0,0,3141,1,0,act854:s15:1 act854:s16:1 act854:s18:1 act854:s17:1 act854:s26:1,
+S05,single_hop,traditional,answered,full,Not checked: no automated source check,1,1,8766,1,0,act854:s27:1 act854:s34:1 act854:s31:1 act854:s29:1 act854:s32:1,act854:s27:1
+S06,single_hop,traditional,answered,full,Not checked: no automated source check,1,1,8921,1,0,act854:s32:1 act854:s27:1 act854:s30:1 act854:s31:1 act854:s4:16,act854:s32:1
+S07,single_hop,traditional,answered,full,Not checked: no automated source check,1,1,11641,1,0,act854:s3:1 act854:s63:1 act854:s60:1 act854:s27:1 act854:s58:1,act854:s3:1
+S08,single_hop,traditional,answered,full,Not checked: no automated source check,1,1,7031,1,0,act854:s35:1 act854:s4:8 pua220:r1:1 pua220:r2:1 act854:s23:1,act854:s4:8
+S09,single_hop,traditional,answered,full,Not checked: no automated source check,1,1,5188,1,0,act854:s20:1 act854:s23:1 act854:s18:1 act854:s17:1 act854:s16:1,act854:s20:1
+S10,single_hop,traditional,answered,full,Not checked: no automated source check,1,1,6875,1,0,act854:s24:1 act854:s35:1 act854:s22:1 act854:s23:1 act854:s21:1,act854:s24:1
+M01,multi_hop,traditional,answered,partial,Not checked: no automated source check,1,1,7640,1,0,act854:s16:1 pua220:r2:1 act854:s23:1 act854:s21:1 act854:s20:1,act854:s23:1
+M02,multi_hop,traditional,not_found,miss,Nothing to check: no answer was found in the documents,0,0,5860,1,0,act854:s49:1 act854:s55:1 act854:s14:1 act854:s3:1 act854:s2:1,
+M03,multi_hop,traditional,answered,partial,Not checked: no automated source check,1,1,28344,1,0,act854:s21:1 act854:s26:1 act854:s22:1 act854:s35:1 act854:s24:1,act854:s22:1
+M04,multi_hop,traditional,not_found,partial,Nothing to check: no answer was found in the documents,0,0,3078,1,0,act854:s22:1 act854:s63:1 pua219:r3:1 pua219:r2:1 pua219:r1:1,
+M05,multi_hop,traditional,not_found,partial,Nothing to check: no answer was found in the documents,0,0,3218,1,0,act854:s63:1 act854:s25:1 act854:s16:1 act854:s10:1 act854:s26:1,
+M06,multi_hop,traditional,answered,full,Not checked: no automated source check,1,1,7297,1,0,act854:s35:1 act854:s58:1 act854:s23:1 act854:s63:1 pua220:r2:1,act854:s35:1
+M07,multi_hop,traditional,answered,partial,Not checked: no automated source check,1,0,9422,1,0,act854:s27:1 act854:s30:1 act854:s31:1 act854:s33:1 act854:s29:1,act854:s33:1
+M08,multi_hop,traditional,not_found,full,Nothing to check: no answer was found in the documents,0,0,3235,1,0,act854:s60:1 act854:s35:1 act854:s33:1 act854:s23:1 act854:s24:1,
+M09,multi_hop,traditional,answered,partial,Not checked: no automated source check,1,1,8234,1,0,act854:s23:1 act854:s17:1 act854:s22:1 act854:s21:1 act854:s20:1,act854:s17:1
+M10,multi_hop,traditional,answered,full,Not checked: no automated source check,3,2,14453,1,0,act854:s27:1 act854:s32:1 act854:s34:1 act854:s63:1 act854:s31:1,act854:s27:1 act854:s34:1 act854:s32:1
+N01,not_in_corpus,traditional,not_found,,Nothing to check: no answer was found in the documents,0,0,3250,1,0,act854:s44:1 act854:s43:1 act854:s45:1 act854:s46:1 act854:s56:1,
+N02,not_in_corpus,traditional,not_found,,Nothing to check: no answer was found in the documents,0,0,2563,1,0,act854:s46:1 act854:s51:1 act854:s4:8 act854:s52:1 act854:s4:2,
+N03,not_in_corpus,traditional,answered,,Not checked: no automated source check,1,0,3828,1,0,act854:s4:11 act854:long_title:1 act854:s5:1 act854:s15:1 act854:s10:1,act854:s4:11
+N04,not_in_corpus,traditional,answered,,Not checked: no automated source check,2,0,4453,1,0,act854:s29:1 act854:s27:1 act854:s30:1 act854:s31:1 act854:s34:1,act854:s29:1 act854:s30:1
+N05,not_in_corpus,traditional,not_found,,Nothing to check: no answer was found in the documents,0,0,2687,1,0,act854:s4:10 act854:s4:7 act854:s3:1 act854:s63:1 act854:s4:20,
+A01,ambiguous,traditional,answered,full,Not checked: no automated source check,3,3,5813,1,0,pua220:r1:1 pua219:r1:1 act854:s1:1 act854:s55:1 act854:s64:1,act854:s1:1 pua220:r1:1 pua219:r1:1
+A02,ambiguous,traditional,answered,,Not checked: no automated source check,1,0,4250,1,0,act854:s59:1 act854:s3:1 act854:s34:1 act854:s58:1 act854:s33:1,act854:s34:1
+A03,ambiguous,traditional,answered,partial,Not checked: no automated source check,1,1,5672,1,0,act854:s23:1 act854:s51:1 pua220:r2:1 act854:s48:1 act854:s35:1,act854:s23:1
+A04,ambiguous,traditional,not_found,,Nothing to check: no answer was found in the documents,0,0,2593,1,0,act854:s3:1 act854:s51:1 act854:s64:1 act854:s38:1 act854:s23:1,
+A05,ambiguous,traditional,answered,miss,Not checked: no automated source check,1,0,3813,1,0,act854:s1:1 act854:s4:4 act854:s59:1 act854:s3:1 act854:s26:1,act854:s3:1
+S01,single_hop,agentic,answered,full,Not checked: no automated source check,1,1,13765,6,1,pua220:r2:1 act854:s23:1 act854:s35:1 pua220:r3:1 act854:s20:1 act854:s24:1,pua220:r2:1
+S02,single_hop,agentic,answered,full,Not checked: no automated source check,1,1,9875,4,0,pua219:r3:1 pua219:r2:1 pua219:r1:1,pua219:r3:1
+S03,single_hop,agentic,answered,full,Not checked: no automated source check,1,1,10141,5,0,pua220:r2:1 pua220:r3:1 act854:s23:1 act854:s35:1 pua220:r1:1 act854:s63:1,pua220:r3:1
+S04,single_hop,agentic,not_found,miss,Nothing to check: no answer was found in the documents,0,0,8703,5,0,act854:s15:1 act854:s18:1 act854:s16:1 act854:s17:1 act854:s26:1 act854:s4:12,
+S05,single_hop,agentic,answered,full,Not checked: no automated source check,1,1,26531,9,2,act854:s31:1 act854:s29:1 act854:s27:1 act854:s63:1 act854:s34:1 act854:s32:1 act854:long_title:1 act854:s3:1 act854:s28:1 act854:s4:7,act854:s27:1
+S06,single_hop,agentic,answered,full,Not checked: no automated source check,1,1,30219,10,2,act854:s32:1 act854:s27:1 act854:s31:1 act854:s29:1 act854:s4:16 act854:long_title:1 act854:s63:1 act854:s54:1 act854:s55:1 act854:s56:1,act854:s32:1
+S07,single_hop,agentic,answered,full,Not checked: no automated source check,1,1,18688,4,0,act854:s3:1 act854:s60:1 act854:s63:1 act854:s34:1 act854:s58:1,act854:s3:1
+S08,single_hop,agentic,answered,full,Not checked: no automated source check,1,1,14937,4,0,act854:s4:8 act854:s35:1 act854:s23:1 act854:s38:1 act854:s63:1,act854:s4:8
+S09,single_hop,agentic,answered,full,Not checked: no automated source check,1,1,19141,5,0,act854:s20:1 act854:s23:1 act854:s17:1 act854:s18:1 act854:s19:1 pua220:r2:1 act854:s24:1 pua220:r1:1,act854:s20:1
+S10,single_hop,agentic,partial,full,Not checked: no automated source check,1,1,29375,9,2,act854:s24:1 act854:s13:1 act854:s12:1 act854:s14:1 act854:s59:1 act854:s10:1 act854:s11:1 act854:s16:1,act854:s24:1
+M01,multi_hop,agentic,not_found,miss,Nothing to check: no answer was found in the documents,0,0,18765,7,2,,
+M02,multi_hop,agentic,not_found,miss,Nothing to check: no answer was found in the documents,0,0,24547,12,2,,
+M03,multi_hop,agentic,partial,partial,Not checked: no automated source check,1,1,31672,9,2,act854:s16:1 act854:s21:1 act854:s20:1 act854:s17:1 act854:s18:1 act854:s63:1 act854:s22:1 act854:s24:1 act854:s51:1 act854:s33:1,act854:s22:1
+M04,multi_hop,agentic,not_found,miss,Nothing to check: no answer was found in the documents,0,0,26328,12,2,,
+M05,multi_hop,agentic,not_found,miss,Nothing to check: no answer was found in the documents,0,0,26781,12,2,,
+M06,multi_hop,agentic,partial,full,Not checked: no automated source check,1,1,37063,18,2,act854:s56:1 act854:s55:1 act854:s35:1 act854:s63:1 act854:s26:1 act854:s46:1 act854:s51:1 act854:s52:1 act854:s23:1 act854:s58:1,act854:s35:1
+M07,multi_hop,agentic,partial,partial,Not checked: no automated source check,3,0,32984,16,2,act854:s27:1 act854:s30:1 act854:s33:1 act854:s63:1 act854:s31:1 act854:s29:1 act854:s28:1 act854:s34:1 act854:s35:1 act854:s56:1,act854:s33:1 act854:s31:1 act854:s34:1
+M08,multi_hop,agentic,not_found,miss,Nothing to check: no answer was found in the documents,0,0,37360,18,2,act854:s13:1 act854:s10:1 act854:s12:1 act854:s14:1 act854:s11:1 act854:s35:1 act854:s24:1 pua220:r1:1 pua220:r3:1 pua220:r2:1,
+M09,multi_hop,agentic,answered,full,Not checked: no automated source check,2,2,17437,5,0,act854:s17:1 act854:s18:1 act854:s20:1 act854:s16:1 act854:s4:5 act854:s19:1 act854:s21:1,act854:s17:1 act854:s19:1
+M10,multi_hop,agentic,partial,full,Not checked: no automated source check,3,2,33485,9,2,act854:s32:1 act854:s63:1 act854:s55:1 act854:s51:1 act854:s38:1 act854:s27:1 act854:s28:1 act854:long_title:1 act854:s29:1 act854:s3:1,act854:s27:1 act854:s29:1 act854:s32:1
+N01,not_in_corpus,agentic,not_found,,Nothing to check: no answer was found in the documents,0,0,29468,12,2,,
+N02,not_in_corpus,agentic,out_of_scope,,Out of scope: not answered,0,0,1141,1,0,,
+N03,not_in_corpus,agentic,answered,,Not checked: no automated source check,1,0,10672,5,0,act854:s4:11 act854:long_title:1 act854:s11:1 act854:s10:1 act854:s15:1 act854:s13:1 act854:s12:1 act854:s14:1,act854:s4:11
+N04,not_in_corpus,agentic,answered,,Not checked: no automated source check,2,0,19781,7,1,act854:s29:1 act854:s27:1 act854:s31:1 act854:s30:1 act854:s28:1 act854:s4:16 act854:s32:1,act854:s29:1 act854:s30:1
+N05,not_in_corpus,agentic,out_of_scope,,Out of scope: not answered,0,0,1141,1,0,,
+A01,ambiguous,agentic,partial,full,Not checked: no automated source check,1,1,19203,11,2,act854:s1:1 act854:s63:1 pua220:r1:1 act854:long_title:1 pua219:r1:1 act854:s64:1 act854:s4:20 act854:s55:1 act854:s4:1 act854:s4:4,act854:s1:1
+A02,ambiguous,agentic,not_found,,Nothing to check: no answer was found in the documents,0,0,23625,12,2,,
+A03,ambiguous,agentic,answered,partial,Not checked: no automated source check,1,1,14640,6,1,pua220:r2:1 act854:s35:1 act854:s23:1 pua220:r1:1 act854:s1:1 act854:s63:1,act854:s23:1
+A04,ambiguous,agentic,not_found,,Nothing to check: no answer was found in the documents,0,0,9000,5,0,pua219:r3:1 pua219:r1:1 act854:s22:1 pua219:r2:1 act854:s63:1 pua220:r2:1 pua220:r1:1 act854:s23:1 act854:s35:1 pua220:r3:1,
+A05,ambiguous,agentic,not_found,miss,Nothing to check: no answer was found in the documents,0,0,14563,7,2,,

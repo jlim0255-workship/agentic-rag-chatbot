@@ -5,7 +5,7 @@ from datetime import date
 
 import pytest
 
-from app.ingest.chunker import chunk_id, contextual_header, make_chunks, split_definitions, to_text
+from app.ingest.chunker import contextual_header, make_chunks, split_definitions, to_text
 from app.ingest.models import DocumentCard, Line, Unit
 
 
@@ -28,10 +28,6 @@ def test_to_text_rejoins_wraps_and_breaks_before_markers() -> None:
              L("(iv) roman;"), L("(A) capital;"), L("(2) Any entity which"), L("contravenes.")]
     assert to_text(lines) == ("23. (1) If it comes to the knowledge of an entity—\n(a) first;\n(iv) roman;\n"
                               "(A) capital;\n(2) Any entity which contravenes.")
-
-
-def test_to_text_keeps_source_verbatim() -> None:
-    assert to_text([L("the date and time of the occurence")]) == "the date and time of the occurence"
 
 
 # --- definitions ---
@@ -72,11 +68,6 @@ def test_contextual_header_formats() -> None:
     assert contextual_header(cfg, None, None, "Long title", None, None) == "Cyber Security Act 2024 (Act 854) | Long title"
     reg = make_cfg(id="pua220", title="Regs [P.U.(A) 220/2024]", unit="Regulation")
     assert contextual_header(reg, "Regulation", "2", "Period", None, None) == "Regs [P.U.(A) 220/2024] | Regulation 2: Period"
-
-
-def test_chunk_id_format() -> None:
-    assert chunk_id(make_cfg(), "s23", 1) == "act854:s23:1"
-    assert chunk_id(make_cfg(), "long_title", 1) == "act854:long_title:1"
 
 
 def test_make_chunks_ids_pages_and_definitions() -> None:

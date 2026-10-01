@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.pipeline.nodes.planner import PlanItem, PlanOutput, clean_plan, normalise_part
+from app.pipeline.nodes.planner import PlanItem, PlanOutput, clean_plan
 from tests.fakes import FakeLLM, chunk, final, grade, run
 
 DOCS, PARTS = {"ACT854", "PUA220", "PUA219"}, {"I", "IV", "IX"}
@@ -13,18 +13,12 @@ def plan(*items: PlanItem) -> PlanOutput:
     return PlanOutput(sub_queries=list(items))
 
 
-@pytest.mark.parametrize("raw, expected", [("IV", "IV"), ("Part IV", "IV"), ("part iv", "IV"), ("4", "IV"),
-                                           (" IX ", "IX"), ("Part 9", "IX")])
-def test_normalise_part(raw: str, expected: str) -> None:
-    assert normalise_part(raw) == expected
-
-
 def test_multi_part_question_keeps_each_sub_query_and_valid_filters() -> None:
-    subs, dropped = clean_plan(plan(PlanItem(query="penalty for not notifying", documents=["ACT854"], parts=["Part IV"]),
+    subs, dropped = clean_plan(plan(PlanItem(query="penalty for not notifying", documents=["ACT854"], parts=["Part IV", "9"]),
                                     PlanItem(query="deadline for initial particulars", documents=["pua220"])),
                                "q", DOCS, PARTS, 3)
     assert [s.query for s in subs] == ["penalty for not notifying", "deadline for initial particulars"]
-    assert subs[0].filters.documents == ["ACT854"] and subs[0].filters.parts == ["IV"]
+    assert subs[0].filters.documents == ["ACT854"] and subs[0].filters.parts == ["IV", "IX"]  # "Part IV" and "9" normalised
     assert subs[1].filters.documents == ["PUA220"]
     assert dropped == []
 
@@ -105,16 +99,6 @@ def test_out_of_scope_gets_fixed_reply_without_retrieval_or_writer(settings, wor
     assert out["done"] == {"status": "out_of_scope"}
     assert out["answer"]["label"] == "Out of scope: not answered" and "only answer questions" in out["answer"]["text"]
     assert world.llm.calls == ["plan"] and world.queries == []
-
-
-def test_removed_routes_are_rejected_and_fall_back_to_complex(settings, world) -> None:
-    # "direct" and "simple" were dropped (the small model misrouted answerable questions to "direct").
-    world.by_query = {"What is the penalty?": [chunk("act854:s23:1")]}
-    world.llm = FakeLLM(plans=[{"route": "direct", "sub_queries": []}, {"route": "simple", "sub_queries": []}],
-                        grades=[grade(["act854:s23:1"])])
-    out = final(run(settings))
-    assert world.llm.calls == ["plan", "plan", "grade", "generate"]
-    assert out["done"] == {"status": "answered"}
 
 
 def test_writer_not_found_gets_the_not_found_label_in_agentic_mode(settings, world) -> None:

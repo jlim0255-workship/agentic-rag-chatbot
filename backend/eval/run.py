@@ -107,15 +107,17 @@ def ask(api: str, question: str, mode: str, timeout_s: float) -> dict:
     with httpx.stream("POST", f"{api}/chat", json={"question": question, "mode": mode},
                       timeout=httpx.Timeout(10, read=timeout_s)) as r:
         r.raise_for_status()
-        events = parse_sse(r.iter_lines())
-    result = {"status": "error", "answer": "", "label": "", "citations": [], "passed": [], "metrics": {},
-              "rewrites": []}
+        return collect(parse_sse(r.iter_lines()))
+
+
+def collect(events) -> dict:
+    """One question's (event, data) pairs -> the fields the report needs. Shared by the API runner and
+    run_cloud.py (which runs the pipeline in-process)."""
+    result = {"status": "error", "answer": "", "label": "", "citations": [], "passed": [], "metrics": {}}
     for name, data in events:
         # Evidence (PRD 13.2) = the chunks given to the writer. None if the writer was never called.
         if name == "trace" and data["node"] == "generate" and data["status"] == "start":
             result["passed"] = data["data"]["chunks"]
-        elif name == "trace" and data["node"] == "rewrite" and data["status"] == "end":
-            result["rewrites"] += data["data"]["rewrites"]  # for calibrating the drift gate
         elif name == "answer":
             result["answer"], result["label"] = data["text"], data["label"]
         elif name == "citations":
@@ -129,18 +131,18 @@ def ask(api: str, question: str, mode: str, timeout_s: float) -> dict:
     return result
 
 
-def run_e2e(api: str, modes: list[str]) -> Path:
-    settings = get_settings()
+def run_e2e(modes: list[str], ask_fn, settings, name: str = "e2e") -> Path:
+    """ask_fn(question, mode) -> collect()-style dict. `settings` must hold the models ask_fn really uses,
+    so the report header names them."""
     questions = load_golden()
-    timeout = settings.question_budget_s + 30
     rows = []
     with connect(settings.database_url, settings.health_timeout_s) as conn:
         expected = {q["id"]: expected_sections(conn, q) for q in questions}
     for mode in modes:
-        ask(api, "warm-up: what is the short title of the Act?", mode, timeout)  # load models; not counted
+        ask_fn("warm-up: what is the short title of the Act?", mode)  # load models; not counted
         for i, q in enumerate(questions, 1):
             print(f"[{mode} {i}/{len(questions)}] {q['id']}", flush=True)
-            res = ask(api, q["question"], mode, timeout)
+            res = ask_fn(q["question"], mode)
             allowed = set().union(*(ids for _, ids in expected[q["id"]]))
             rows.append({
                 "id": q["id"], "category": q["category"], "mode": mode, "status": res["status"],
@@ -149,13 +151,17 @@ def run_e2e(api: str, modes: list[str]) -> Path:
                 "cited_expected": sum(c in allowed for c in res["citations"]),
                 "latency_ms": res["metrics"].get("latency_ms"), "llm_calls": res["metrics"].get("llm_calls"),
                 "retries": res["metrics"].get("retries"), "passed": " ".join(res["passed"]),
-                "citations": " ".join(res["citations"]), "rewrites": res["rewrites"], "answer": res["answer"]})
+                "citations": " ".join(res["citations"]), "answer": res["answer"]})
 
     when = f"{datetime.now():%Y-%m-%d %H:%M}"
     header = [f"# Traditional vs agentic, end to end ({when})", "",
               f"{len(questions)} questions · answer model `{settings.answer_model}` · embedding `{settings.embed_model}` · "
               f"latency excludes one warm-up question per mode."]
-    stem = save("e2e", e2e_report(rows, modes, questions, header), rows)
+    stem = save(name, e2e_report(rows, modes, questions, header), rows)
+    # Raw rows incl. answer text, so eval.judge can score them without generating again.
+    with stem.with_name(f"{stem.name}-rows.jsonl").open("w", encoding="utf-8") as f:
+        for r in rows:
+            f.write(json.dumps({**r, "model": settings.answer_model}, ensure_ascii=False) + "\n")
     for mode in modes:
         text = answers_file(mode, [r for r in rows if r["mode"] == mode], questions, when)
         stem.with_name(f"{stem.name}-{mode}-answers.md").write_text(text, encoding="utf-8")
@@ -168,8 +174,13 @@ def main() -> None:
     parser.add_argument("--mode", choices=["traditional", "agentic"], help="run one mode only (default: both)")
     parser.add_argument("--api", default="http://127.0.0.1:8000")
     args = parser.parse_args()
-    stem = run_retrieval() if args.experiment == "retrieval" else \
-        run_e2e(args.api, [args.mode] if args.mode else ["traditional", "agentic"])
+    if args.experiment == "retrieval":
+        stem = run_retrieval()
+    else:
+        settings = get_settings()
+        timeout = settings.question_budget_s + 30
+        stem = run_e2e([args.mode] if args.mode else ["traditional", "agentic"],
+                       lambda question, mode: ask(args.api, question, mode, timeout), settings)
     print(f"report: {stem}.md")
 
 

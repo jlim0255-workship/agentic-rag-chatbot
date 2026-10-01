@@ -1,4 +1,4 @@
-# Answers: traditional mode (2026-10-01 12:44)
+# Answers: traditional mode (2026-10-01 15:35)
 
 For manual review: each answer next to the key facts a correct answer contains.
 
@@ -8,7 +8,7 @@ For manual review: each answer next to the key facts a correct answer contains.
 
 **Given to the writer:** pua220:r2:1 act854:s23:1 act854:s35:1 act854:s20:1 act854:s22:1 · **Cited:** pua220:r2:1
 
-Within six hours from the time the cyber security incident comes to the knowledge of the national critical information infrastructure entity, the authorized person shall submit the following particulars of information [pua220:r2:1].
+An authorized person of a national critical information infrastructure entity shall submit the particulars of information within six hours from the time the cyber security incident comes to the knowledge of the national critical information infrastructure entity [pua220:r2:1].
 
 **Key facts expected:**
 - Notify immediately by electronic means once the incident comes to the entity's knowledge
@@ -18,9 +18,9 @@ Within six hours from the time the cyber security incident comes to the knowledg
 
 **Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
-**Given to the writer:** pua219:r3:1 act854:s22:1 pua219:r1:1 act854:s63:1 pua219:r2:1 · **Cited:** act854:s22:1 pua219:r3:1
+**Given to the writer:** pua219:r3:1 act854:s22:1 pua219:r1:1 act854:s63:1 pua219:r2:1 · **Cited:** pua219:r3:1
 
-A national critical information infrastructure entity shall conduct a cyber security risk assessment at least once a year [act854:s22:1]. It shall carry out an audit at least once in every two years or at such higher frequency as may be directed by the Chief Executive in any particular case [pua219:r3:1].
+A national critical information infrastructure entity shall conduct a cyber security risk assessment at least once a year [pua219:r3:1]. It must carry out an audit at least once in every two years, or at a higher frequency if directed by the Chief Executive in any particular case [pua219:r3:1].
 
 **Key facts expected:**
 - Risk assessment at least once a year
@@ -32,7 +32,7 @@ A national critical information infrastructure entity shall conduct a cyber secu
 
 **Given to the writer:** pua220:r3:1 pua220:r2:1 act854:s4:8 act854:s35:1 act854:s23:1 · **Cited:** pua220:r3:1
 
-The submission of information under subregulations 2(2) and (3) must be made through the National Cyber Coordination and Command Centre System or by the communication as may be determined by the Chief Executive when the National Cyber Coordination and Command Centre System is disrupted [pua220:r3:1].
+Information must be submitted through the National Cyber Coordination and Command Centre System [pua220:r3:1]. In the event of disruption in the National Cyber Coordination and Command Centre System, it shall be submitted by the communication as may be determined by the Chief Executive [pua220:r3:1].
 
 **Key facts expected:**
 - Through the National Cyber Coordination and Command Centre System
@@ -55,7 +55,7 @@ Not found in the provided documents.
 
 **Given to the writer:** act854:s27:1 act854:s34:1 act854:s31:1 act854:s29:1 act854:s32:1 · **Cited:** act854:s27:1
 
-Any person who provides any cyber security service or advertises, or in any way holds himself out as a provider of a cyber security service without a licence commits an offence and shall, on conviction, be liable to a fine not exceeding five hundred thousand ringgit or to imprisonment for a term not exceeding ten years or to both [act854:s27:1].
+Any person who provides a cyber security service without a licence commits an offence and shall, on conviction, be liable to a fine not exceeding five hundred thousand ringgit or to imprisonment for a term not exceeding ten years or to both [act854:s27:1].
 
 **Key facts expected:**
 - Offence under s27(5)
@@ -67,7 +67,7 @@ Any person who provides any cyber security service or advertises, or in any way 
 
 **Given to the writer:** act854:s32:1 act854:s27:1 act854:s30:1 act854:s31:1 act854:s4:16 · **Cited:** act854:s32:1
 
-The information referred to in subsection (2) of section 32 of the ACT854 must be retained for a period of not less than six years from the date the cyber security service was provided [act854:s32:1].
+A licensee must retain records for a period of not less than six years from the date the cyber security service was provided [act854:s32:1].
 
 **Key facts expected:**
 - Not less than six years from the date the service was provided
@@ -79,7 +79,7 @@ The information referred to in subsection (2) of section 32 of the ACT854 must b
 
 **Given to the writer:** act854:s3:1 act854:s63:1 act854:s60:1 act854:s27:1 act854:s58:1 · **Cited:** act854:s3:1
 
-(1) This Act shall, in relation to any person, whatever his nationality or citizenship, have effect outside as well as within Malaysia [act854:s3:1]. If an offence under this Act is committed by any person in any place outside Malaysia, it may be dealt with in respect of such offence as if it was committed at any place within Malaysia [act854:s3:1].
+Yes, the Act has effect outside as well as within Malaysia in relation to any person, regardless of nationality or citizenship [act854:s3:1]. A person who commits an offence under this Act in any place outside Malaysia may be dealt with as if the offence was committed within Malaysia [act854:s3:1]. This application occurs if the national critical information infrastructure is wholly or partly in Malaysia for the offence in question [act854:s3:1].
 
 **Key facts expected:**
 - Yes, it has effect outside as well as within Malaysia, whatever the person's nationality or citizenship
@@ -91,7 +91,7 @@ The information referred to in subsection (2) of section 32 of the ACT854 must b
 
 **Given to the writer:** act854:s35:1 act854:s4:8 pua220:r1:1 pua220:r2:1 act854:s23:1 · **Cited:** act854:s4:8
 
-"cyber security incident" means an act or activity carried out on or through a computer or computer system, without lawful authority, that jeopardizes or adversely affects the cyber security of that computer or computer system or another computer or computer system [act854:s4:8].
+A “cyber security incident” is defined as an act or activity carried out on or through a computer or computer system, without lawful authority, that jeopardizes or adversely affects the cyber security of that computer or computer system or another computer or computer system [act854:s4:8].
 
 **Key facts expected:**
 - An act or activity carried out on or through a computer or computer system, without lawful authority, that jeopardizes or adversely affects the cyber security of that or another computer or computer system
@@ -102,7 +102,7 @@ The information referred to in subsection (2) of section 32 of the ACT854 must b
 
 **Given to the writer:** act854:s20:1 act854:s23:1 act854:s18:1 act854:s17:1 act854:s16:1 · **Cited:** act854:s20:1
 
-The national critical information infrastructure entity shall notify its national critical information infrastructure sector lead of a material change within thirty days from the date the change was completed [act854:s20:1:3].
+A national critical information infrastructure entity shall notify its national critical information infrastructure sector lead of the material change within thirty days from the date the change was completed [act854:s20:3].
 
 **Key facts expected:**
 - Within thirty days from the date the change was completed (s20(3))
@@ -114,7 +114,7 @@ The national critical information infrastructure entity shall notify its nationa
 
 **Given to the writer:** act854:s24:1 act854:s35:1 act854:s22:1 act854:s23:1 act854:s21:1 · **Cited:** act854:s24:1
 
-Any national critical information infrastructure entity which fails to comply with the directions of the Chief Executive under subsection (3) of section 24 commits an offence and shall, on conviction, be liable to a fine not exceeding one hundred thousand ringgit [act854:s24:1].
+A national critical information infrastructure entity that fails to comply with the directions of the Chief Executive for a cyber security exercise commits an offence and shall, on conviction, be liable to a fine not exceeding one hundred thousand ringgit [act854:s24:4].
 
 **Key facts expected:**
 - Offence under s24(4): fine not exceeding RM100,000
@@ -124,9 +124,26 @@ Any national critical information infrastructure entity which fails to comply wi
 
 **Result:** PART 2/3 (missing PUA220 reg 3) · answered · **Label:** Not checked: no automated source check
 
-**Given to the writer:** act854:s16:1 pua220:r2:1 act854:s23:1 act854:s21:1 act854:s20:1 · **Cited:** act854:s23:1
+**Given to the writer:** act854:s16:1 pua220:r2:1 act854:s23:1 act854:s21:1 act854:s20:1 · **Cited:** pua220:r2:1 act854:s23:1
 
-If a cyber security incident has occurred in respect of the national critical information infrastructure owned or operated by the national critical information infrastructure entity, the entity shall notify the Chief Executive and its national critical information infrastructure sector lead of such information within the period and in such manner as may be prescribed [act854:s23:1].
+You must immediately give a notification of the cyber security incident by electronic means when it comes to your knowledge [pua220:r2:1]. This notification must be given to the Chief Executive and your national critical information infrastructure sector lead [act854:s23:1].
+
+Within six hours from the time the incident comes to your knowledge, an authorized person must submit the following particulars: [pua220:r2:1]
+- Particulars of the authorized person [pua220:r2:1].
+- Particulars of the national critical information infrastructure entity, the national critical information infrastructure sector, and the national critical information infrastructure sector lead [pua220:r2:1].
+- Information on the incident, including the type and description, severity, the known date and time of occurrence, and the method of discovery [pua220:r2:1].
+
+Within fourteen days after the initial notification, an authorized person must provide supplementary information to the fullest extent practicable, including: [pua220:r2:1]
+- Particulars of the affected national critical information infrastructure [pua220:r2:1].
+- Estimated number of affected hosts [pua220:r2:1].
+- Particulars of the cyber security threat actor [pua220:r2:1].
+- Artifacts related to the incident [pua220:r2:1].
+- Information on any relating incident and the manner of relation [pua220:r2:1].
+- Particulars of the tactics, techniques and procedures [pua220:r2:1].
+- Impact on the national critical information infrastructure or any computer or interconnected computer system [pua220:r2:1].
+- Action taken [pua220:r2:1].
+
+Additionally, you must provide further updates on the incident from time to time as the Chief Executive may require [pua220:r2:1].
 
 **Key facts expected:**
 - Notify the Chief Executive and the NCII sector lead (s23(1))
@@ -153,13 +170,9 @@ Not found in the provided documents.
 
 **Given to the writer:** act854:s21:1 act854:s26:1 act854:s22:1 act854:s35:1 act854:s24:1 · **Cited:** act854:s22:1
 
-A national critical information infrastructure entity shall conduct a cyber security risk assessment in respect of the national critical information infrastructure owned or operated by the national critical information infrastructure entity in accordance with the code of practice and directive [act854:s22:1](ACT854 s22).
-A national critical information infrastructure entity shall cause an audit by an auditor approved by the Chief Executive to determine the compliance of the national critical information infrastructure entity with this Act [act854:s22:1](ACT854 s22).
-The national critical information infrastructure entity shall submit the cyber security risk assessment report or audit report to the Chief Executive within thirty days after the completion of the cyber security risk assessment or audit under subsection (1) [act854:s22:1](ACT854 s22).
-If the result of the cyber security risk assessment is not satisfactory, the Chief Executive may direct the national critical information infrastructure entity to take further initiatives to re-evaluate the cyber security risk to such national critical information infrastructure within the period as may be determined by the Chief Executive [act854:s22:1](ACT854 s22).
-If the audit report submitted under subsection (2) is insufficient, the Chief Executive may direct the national critical information infrastructure entity to rectify the audit report within the period as may be determined by the Chief Executive [act854:s22:1](ACT854 s22).
-A national critical information infrastructure entity which fails to comply with subsection (1) or (2) commits an offence and shall, on conviction, be liable to a fine not exceeding two hundred thousand ringgit or to imprisonment for a term not exceeding three years or to both [act854:s22:1](ACT854 s22).
-A national critical information infrastructure entity which fails to comply with the directions of the Chief Executive under subsection (3), (4), (5) or (6) commits an offence and shall, on conviction, be liable to a fine not exceeding one hundred thousand ringgit [act854:s22:1](ACT854 s22).
+A national critical information infrastructure entity must, within the period as may be prescribed, conduct a cyber security risk assessment in accordance with the code of practice and directive, and cause an audit to be carried out by an auditor approved by the Chief Executive to determine compliance with the Act [act854:s22:1].
+
+If a national critical information infrastructure entity contravenes these requirements, it commits an offence and shall, on conviction, be liable to a fine not exceeding two hundred thousand ringgit or to imprisonment for a term not exceeding three years or to both [act854:s22:7].
 
 **Key facts expected:**
 - Risk assessment at least once a year; audit at least once every two years (PUA219 reg 3)
@@ -169,11 +182,11 @@ A national critical information infrastructure entity which fails to comply with
 
 ## M04 (multi_hop): Which is punished more heavily: not reporting a breach, or skipping the yearly risk assessment?
 
-**Result:** PART 2/3 (missing ACT854 s23) · said not found · **Label:** Nothing to check: no answer was found in the documents
+**Result:** PART 2/3 (missing ACT854 s23) · answered · **Label:** Not checked: no automated source check
 
-**Given to the writer:** act854:s22:1 act854:s63:1 pua219:r3:1 pua219:r2:1 pua219:r1:1 · **Cited:** none
+**Given to the writer:** act854:s22:1 act854:s63:1 pua219:r3:1 pua219:r2:1 pua219:r1:1 · **Cited:** act854:s22:1 act854:s63:1 pua219:r3:1 pua219:r2:1 pua219:r1:1
 
-Not found in the provided documents.
+The provided sources do not contain information regarding the punishment for not reporting a breach [act854:s22:1][act854:s63:1][pua219:r3:1][pua219:r2:1][pua219:r1:1].
 
 **Key facts expected:**
 - Not reporting an incident (s23(2)): fine not exceeding RM500,000 or imprisonment not exceeding ten years or both
@@ -183,11 +196,11 @@ Not found in the provided documents.
 
 ## M05 (multi_hop): We think our sector's security rulebook is too strict. Can we follow ISO 27001 instead, and who wrote the rulebook?
 
-**Result:** PART 1/2 (missing ACT854 s21) · said not found · **Label:** Nothing to check: no answer was found in the documents
+**Result:** PART 1/2 (missing ACT854 s21) · answered · **Label:** Not checked: no automated source check
 
-**Given to the writer:** act854:s63:1 act854:s25:1 act854:s16:1 act854:s10:1 act854:s26:1 · **Cited:** none
+**Given to the writer:** act854:s63:1 act854:s25:1 act854:s16:1 act854:s10:1 act854:s26:1 · **Cited:** act854:s25:1 act854:s16:1
 
-Not found in the provided documents.
+The national critical information infrastructure sector lead is responsible for preparing the code of practice [act854:s25:1], [act854:s16:1]. The sources do not mention ISO 27001.
 
 **Key facts expected:**
 - The 'rulebook' is the code of practice, prepared by the NCII sector lead and endorsed by the Chief Executive (s25(1), (3))
@@ -199,9 +212,9 @@ Not found in the provided documents.
 
 **Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
-**Given to the writer:** act854:s35:1 act854:s58:1 act854:s23:1 act854:s63:1 pua220:r2:1 · **Cited:** act854:s35:1
+**Given to the writer:** act854:s35:1 act854:s58:1 act854:s23:1 act854:s63:1 pua220:r2:1 · **Cited:** act854:s58:1 act854:s35:1
 
-If a national critical information infrastructure entity fails to comply with a directive from the Chief Executive regarding measures to respond to or recover from a cyber security incident, it commits an offence and can be liable to a fine not exceeding two hundred thousand ringgit or imprisonment for a term not exceeding three years or both [act854:s35:1:5].
+Yes, the CEO could personally be charged [act854:s58:1]. If a national critical information infrastructure entity fails to comply with a directive from the Chief Executive regarding measures to respond to, recover from, or prevent a cyber security incident, it commits an offence [act854:s35:5]. Where the person committing an offence is a company or other body of persons, a director, manager, or any person responsible for the management of its affairs may be charged severally or jointly in the same proceedings [act854:s58:1]. Such a person shall be deemed guilty and liable to the same punishment or penalty as an individual unless they prove the offence was committed without their knowledge, or without their consent or connivance and that they had taken all reasonable precautions and exercised due diligence to prevent it [act854:s58:1]. The penalty for failing to comply with the Chief Executive's directive is a fine not exceeding two hundred thousand ringgit or imprisonment for a term not exceeding three years or both [act854:s35:5].
 
 **Key facts expected:**
 - After an incident is confirmed, the Chief Executive may issue a directive on response, recovery and prevention (s35(4))
@@ -210,11 +223,11 @@ If a national critical information infrastructure entity fails to comply with a 
 
 ## M07 (multi_hop): Our cyber security service provider lost its licence. Can it challenge that, and can it keep working in the meantime?
 
-**Result:** PART 1/2 (missing ACT854 s53) · answered · **Label:** Not checked: no automated source check
+**Result:** PART 1/2 (missing ACT854 s53) · said not found · **Label:** Nothing to check: no answer was found in the documents
 
-**Given to the writer:** act854:s27:1 act854:s30:1 act854:s31:1 act854:s33:1 act854:s29:1 · **Cited:** act854:s33:1
+**Given to the writer:** act854:s27:1 act854:s30:1 act854:s31:1 act854:s33:1 act854:s29:1 · **Cited:** none
 
-The Chief Executive may revoke or suspend a licence issued under section 29 if the Chief Executive is satisfied that [act854:s33:1]. The grounds for revocation or suspension include, but are not limited to, the licensee failing to comply with any conditions of the licence, the licence being obtained by fraud or misrepresentation, a circumstance existing at the time of issuance or renewal that the Chief Executive was unaware of, the licensee ceasing to carry on the licensed business, the licensee being adjudged bankrupt or in liquidation or being wound up, a conviction for an offence under this Act or an offence involving fraud, dishonesty or moral turpitude, or the revocation or suspension being in the interest of the public or national security [act854:s33:1].
+Not found in the provided documents.
 
 **Key facts expected:**
 - It may appeal in writing to the Minister within thirty days after being informed of the revocation; the Minister may confirm or set aside the decision (s53)
@@ -222,11 +235,11 @@ The Chief Executive may revoke or suspend a licence issued under section 29 if t
 
 ## M08 (multi_hop): What is the largest compound payment the Chief Executive could accept for an incident that was never reported?
 
-**Result:** FULL #1 · said not found · **Label:** Nothing to check: no answer was found in the documents
+**Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
-**Given to the writer:** act854:s60:1 act854:s35:1 act854:s33:1 act854:s23:1 act854:s24:1 · **Cited:** none
+**Given to the writer:** act854:s60:1 act854:s35:1 act854:s33:1 act854:s23:1 act854:s24:1 · **Cited:** act854:s23:1 act854:s60:1
 
-Not found in the provided documents.
+For a national critical information infrastructure entity that fails to notify the Chief Executive and its sector lead of a cyber security incident, the maximum fine is five hundred thousand ringgit [act854:s23:1]. The Chief Executive may compound a prescribed offence by making a written offer for an amount of money not exceeding fifty per centum of the amount of maximum fine for that offence [act854:s60:1]. Therefore, the largest compound payment the Chief Executive could accept is fifty per centum of five hundred thousand ringgit [act854:s23:1], [act854:s60:1].
 
 **Key facts expected:**
 - Only if regulations prescribe it as a compoundable offence (s60(1)); the corpus does not say whether it is
@@ -239,7 +252,7 @@ Not found in the provided documents.
 
 **Given to the writer:** act854:s23:1 act854:s17:1 act854:s22:1 act854:s21:1 act854:s20:1 · **Cited:** act854:s17:1
 
-A national critical information infrastructure sector lead may designate a Government Entity or person as a national critical information infrastructure entity if the national critical information infrastructure sector lead is satisfied that the Government Entity or person owns or operates a national critical information infrastructure [act854:s17:1]. The national critical information infrastructure entity which has been designated under this section shall by notice in writing notify its national critical information infrastructure sector lead without delay if the national critical information infrastructure entity is of the opinion that the computer or computer system owned or operated by the national critical information infrastructure entity has ceased to be a national critical information infrastructure or the national critical information infrastructure entity no longer owns or operates any national critical information infrastructure [act854:s17:1:6].
+A national critical information infrastructure sector lead may designate a person or Government Entity as a national critical information infrastructure entity if they are satisfied that the person or Government Entity owns or operates a national critical information infrastructure [act854:s17:1]. Regarding the status, a designated national critical information infrastructure entity must notify its national critical information infrastructure sector lead in writing without delay if the entity is of the opinion that the computer or computer system it owns or operates has ceased to be a national critical information infrastructure, or if the entity no longer owns or operates any national critical information infrastructure [act854:s17:1].
 
 **Key facts expected:**
 - The NCII sector lead designates, if satisfied the company owns or operates an NCII (s17(1))
@@ -249,9 +262,14 @@ A national critical information infrastructure sector lead may designate a Gover
 
 **Result:** FULL #1 · answered · **Label:** Not checked: no automated source check
 
-**Given to the writer:** act854:s27:1 act854:s32:1 act854:s34:1 act854:s63:1 act854:s31:1 · **Cited:** act854:s27:1 act854:s34:1 act854:s32:1
+**Given to the writer:** act854:s27:1 act854:s32:1 act854:s34:1 act854:s63:1 act854:s31:1 · **Cited:** act854:s27:1 act854:s32:1
 
-To provide any cyber security service, a person must hold a licence issued under this Part [act854:s27:1]. A person must hold a licence to advertise, or in any way hold himself out as a provider of a cyber security service [act854:s27:1]. A licence may be transferred to any other person with the approval of the Chief Executive if an application in writing is made by the licensee and the Chief Executive is satisfied that the person to whom the licence is to be transferred has the necessary financial and technical resources to comply with the conditions of the licence [act854:s34:1]. A licensee shall, on each occasion where the licensee is engaged to provide cyber security service, keep and maintain the following records: the name and address of the person engaging the licensee for the cyber security service; the name of the person providing the cyber security service on behalf of the licensee, if any; the date and time of cyber security service that was provided by the licensee or other person on behalf of the licensee; details of the type of cyber security service provided; and such other particulars as may be determined by the Chief Executive [act854:s32:1].
+Yes, no person shall provide any cyber security service or advertise themselves as a provider of a cyber security service unless they hold a licence issued under this Part [act854:s27:1]. On each occasion they are engaged to provide the service, the licensee must keep and maintain records of:
+- the name and address of the person engaging the licensee for the cyber security service [act854:s32:1];
+- the name of the person providing the cyber security service on behalf of the licensee, if any [act854:s32:1];
+- the date and time of cyber security service that was provided by the licensee or other person on behalf of the licensee [act854:s32:1];
+- details of the type of cyber security service provided [act854:s32:1]; and
+- such other particulars as may be determined by the Chief Executive [act854:s32:1].
 
 **Key facts expected:**
 - A licence is needed to provide a cyber security service prescribed by the Minister (s27(1), (2)); whether security testing is prescribed is not stated in the corpus
@@ -282,22 +300,22 @@ Not found in the provided documents.
 
 ## N03 (not_in_corpus): Who is the current Chief Executive of the National Cyber Security Agency?
 
-**Result:** WRONG · answered · **Label:** Not checked: no automated source check
+**Result:** OK · said not found · **Label:** Nothing to check: no answer was found in the documents
 
-**Given to the writer:** act854:s4:11 act854:long_title:1 act854:s5:1 act854:s15:1 act854:s10:1 · **Cited:** act854:s4:11
+**Given to the writer:** act854:s4:11 act854:long_title:1 act854:s5:1 act854:s15:1 act854:s10:1 · **Cited:** none
 
-The Chief Executive is the Chief Executive of the National Cyber Security Agency [act854:s4:11].
+Not found in the provided documents.
 
 **Key facts expected:**
 - Not found: the corpus does not name any office holder
 
 ## N04 (not_in_corpus): How much is the fee for a cyber security service provider licence?
 
-**Result:** WRONG · answered · **Label:** Not checked: no automated source check
+**Result:** OK · said not found · **Label:** Nothing to check: no answer was found in the documents
 
-**Given to the writer:** act854:s29:1 act854:s27:1 act854:s30:1 act854:s31:1 act854:s34:1 · **Cited:** act854:s29:1 act854:s30:1
+**Given to the writer:** act854:s29:1 act854:s27:1 act854:s30:1 act854:s31:1 act854:s34:1 · **Cited:** none
 
-The application for a licence to provide a cyber security service must be accompanied by payment of the prescribed fee [act854:s29:2]. The application for renewal of a licence must be accompanied by payment of the prescribed fee [act854:s30:2].
+Not found in the provided documents.
 
 **Key facts expected:**
 - Not found: the Act only says the prescribed fee (s29/s30); the amount is not in the corpus
@@ -320,7 +338,7 @@ Not found in the provided documents.
 
 **Given to the writer:** pua220:r1:1 pua219:r1:1 act854:s1:1 act854:s55:1 act854:s64:1 · **Cited:** act854:s1:1 pua220:r1:1 pua219:r1:1
 
-The Cyber Security Act 2024 comes into operation on a date to be appointed by the Minister by notification in the Gazette [act854:s1:2]. The Cyber Security (Notification of Cyber Security Incident) Regulations 2024 and the Cyber Security (Period for Cyber Security Risk Assessment and Audit) Regulations 2024 come into operation on 26 August 2024 [pua220:r1:2], [pua219:r1:2].
+The Cyber Security Act 2024 comes into operation on a date to be appointed by the Minister by notification in the Gazette [act854:s1:1]. The Cyber Security (Notification of Cyber Security Incident) Regulations 2024 and the Cyber Security (Period for Cyber Security Risk Assessment and Audit) Regulations 2024 come into operation on 26 August 2024 [pua220:r1:1], [pua219:r1:1].
 
 **Key facts expected:**
 - Act 854: on a date appointed by the Minister by notification in the Gazette; the date is not stated in the Act (s1(2))
@@ -329,11 +347,11 @@ The Cyber Security Act 2024 comes into operation on a date to be appointed by th
 
 ## A02 (ambiguous): What is the penalty?
 
-**Result:** – · answered · **Label:** Not checked: no automated source check
+**Result:** – · said not found · **Label:** Nothing to check: no answer was found in the documents
 
-**Given to the writer:** act854:s59:1 act854:s3:1 act854:s34:1 act854:s58:1 act854:s33:1 · **Cited:** act854:s34:1
+**Given to the writer:** act854:s59:1 act854:s3:1 act854:s34:1 act854:s58:1 act854:s33:1 · **Cited:** none
 
-A fine not exceeding two hundred thousand ringgit or imprisonment for a term not exceeding three years or both can be imposed for contravening subsection (1) of section 34 [act854:s34:2].
+Not found in the provided documents.
 
 **Key facts expected:**
 - Underspecified: penalties differ by offence
@@ -343,9 +361,9 @@ A fine not exceeding two hundred thousand ringgit or imprisonment for a term not
 
 **Result:** PART 1/2 (missing ACT854 s17) · answered · **Label:** Not checked: no automated source check
 
-**Given to the writer:** act854:s23:1 act854:s51:1 pua220:r2:1 act854:s48:1 act854:s35:1 · **Cited:** act854:s23:1
+**Given to the writer:** act854:s23:1 act854:s51:1 pua220:r2:1 act854:s48:1 act854:s35:1 · **Cited:** act854:s23:1 pua220:r2:1
 
-If it comes to the knowledge of a national critical information infrastructure entity that a cyber security incident has or might have occurred in respect of the national critical information infrastructure owned or operated by the national critical information infrastructure entity, the national critical information infrastructure entity shall notify the Chief Executive and its national critical information infrastructure sector lead of such information within the period and in such manner as may be prescribed [act854:s23:1].
+If it comes to the knowledge of a national critical information infrastructure entity that a cyber security incident has or might have occurred in respect of the national critical information infrastructure owned or operated by the national critical information infrastructure entity, the entity shall notify the Chief Executive and its national critical information infrastructure sector lead [act854:s23:1]. An authorized person of the entity must give this notification immediately by electronic means when the incident comes to the knowledge of the entity [pua220:r2:1].
 
 **Key facts expected:**
 - Underspecified: depends on what 'it' is and who is asking
@@ -369,7 +387,7 @@ Not found in the provided documents.
 
 **Given to the writer:** act854:s1:1 act854:s4:4 act854:s59:1 act854:s3:1 act854:s26:1 · **Cited:** act854:s3:1
 
-This Act shall have effect outside as well as within Malaysia in relation to any person, whatever his nationality or citizenship [act854:s3:1].
+The Act has effect both within and outside Malaysia for any person, regardless of their nationality or citizenship [act854:s3:1]. For offences committed outside Malaysia, the Act applies if the national critical information infrastructure is wholly or partly in Malaysia [act854:s3:2].
 
 **Key facts expected:**
 - Underspecified: depends on the organisation's role

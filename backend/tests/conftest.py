@@ -32,7 +32,6 @@ def world(monkeypatch: pytest.MonkeyPatch):
         by_query: dict[str, list] = {}
         queries: list[str] = []  # every query searched, in order
         llm = FakeLLM()
-        vectors: dict[str, list[float]] = {}  # text -> embedding; default [1, 0] (all texts identical)
         tool_calls: list[dict] = []  # what the fake tool_agent model "calls"; default: no tool
 
     w = World()
@@ -48,5 +47,4 @@ def world(monkeypatch: pytest.MonkeyPatch):
                         lambda conn: ([("ACT854", "Act"), ("PUA220", "Regs")], [("IV", "Entities")]))
     monkeypatch.setattr(search, "retrieve", fake_retrieve)
     monkeypatch.setattr(ollama, "chat", lambda *a, **k: w.llm(*a, **k))
-    monkeypatch.setattr(ollama, "embed", lambda url, model, texts, timeout: [w.vectors.get(t, [1.0, 0.0]) for t in texts])
     return w

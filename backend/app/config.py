@@ -50,8 +50,6 @@ class Settings(BaseSettings):
     max_retries: int = Field(default=2, ge=0)
     max_sub_queries: int = Field(default=3, gt=0)
     writer_max_chunks: int = Field(default=10, gt=0)  # agentic: verified chunks + other retrieved context
-    # Rewrite drift gate: reject variants less similar than this to their sub-query. 0 = off (calibrate first).
-    rewrite_min_similarity: float = Field(default=0.0, ge=0, le=1)
 
     # How long /health waits for Postgres or Ollama before reporting them down.
     health_timeout_s: float = Field(default=3.0, gt=0)

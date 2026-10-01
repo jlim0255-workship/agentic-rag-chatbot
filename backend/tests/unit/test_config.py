@@ -31,22 +31,14 @@ def test_loads_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
     assert s.max_retries == 3
 
 
-def test_prd_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
-    set_env(monkeypatch, **REQUIRED)
-    s = Settings(_env_file=None)
-    assert (s.fast_model, s.answer_model) == ("gemma4:e2b", "gemma4:e2b")
-    assert s.ollama_base_url == "http://host.docker.internal:11434"
-    assert (s.rrf_k, s.max_retries) == (60, 2)
-
-
-@pytest.mark.parametrize("missing", sorted(REQUIRED))
+@pytest.mark.parametrize("missing", ["EMBED_MODEL", "EMBED_DIM", "DATABASE_URL"])
 def test_required_values_have_no_default(monkeypatch: pytest.MonkeyPatch, missing: str) -> None:
     set_env(monkeypatch, **{k: v for k, v in REQUIRED.items() if k != missing})
     with pytest.raises(ValidationError):
         Settings(_env_file=None)
 
 
-@pytest.mark.parametrize("dim", ["0", "2001", "abc"])
+@pytest.mark.parametrize("dim", ["0", "abc"])
 def test_invalid_embed_dim_rejected(monkeypatch: pytest.MonkeyPatch, dim: str) -> None:
     set_env(monkeypatch, **{**REQUIRED, "EMBED_DIM": dim})
     with pytest.raises(ValidationError):

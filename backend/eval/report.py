@@ -193,3 +193,81 @@ def answers_file(mode: str, rows: list[dict], questions: list[dict], when: str) 
                f"**Given to the writer:** {r['passed'] or 'none'} · **Cited:** {r['citations'] or 'none'}", "",
                r["answer"] or "_(no answer)_", "", "**Key facts expected:**", *[f"- {n}" for n in q["answer_notes"]], ""]
     return "\n".join(md)
+
+
+# --- Experiment B judged: LLM-as-judge scores per configuration (model x mode) ---
+
+ATTRIBUTION = ["Success", "Correct but not grounded", "Hallucination", "Writer missed facts it had", "Retrieval failure"]
+
+
+def mean(values: list[float | None]) -> str:
+    vals = [v for v in values if v is not None]
+    return f"{sum(vals) / len(vals):.2f} (n={len(vals)})" if vals else "n/a (n=0)"
+
+
+def judged_cell(r: dict) -> str:
+    """Per-question scores: C = correctness, F = faithfulness, R = relevance."""
+    def num(v: float | None) -> str:
+        return "–" if v is None else f"{v:.2f}"
+    if r["faithfulness"] is None and r["relevance"] is None and not r["unjudged"]:
+        return f"C {num(r['correctness'])} · {STATUS.get(r['status'], r['status'])}"
+    return f"C {num(r['correctness'])} · F {num(r['faithfulness'])} · R {num(r['relevance'])}"
+
+
+def judge_report(rows: list[dict], questions: list[dict], header: list[str], correct_at: float) -> str:
+    """rows: judged rows (eval.judge) with `config` = "<model> <mode>"; one per question and config."""
+    configs = list(dict.fromkeys(r["config"] for r in rows))
+    sel = {c: [r for r in rows if r["config"] == c] for c in configs}
+
+    def correct(rs: list[dict]) -> str:
+        return rate(sum((r["correctness"] or 0) >= correct_at for r in rs), len(rs))
+
+    def headline(rs: list[dict]) -> dict[str, str]:
+        answered = [r for r in rs if r["faithfulness"] is not None]
+        graded = [r for r in rs if r["outcome"]]
+        off = [r for r in rs if r["category"] == "not_in_corpus"]
+        lat = [r["latency_ms"] / 1000 for r in rs if r["latency_ms"] is not None]
+        return {
+            "Correct (score >= %.2f), all questions" % correct_at: correct(rs),
+            "Correctness, mean": mean([r["correctness"] for r in rs]),
+            "Faithfulness, mean (answers with claims)": mean([r["faithfulness"] for r in rs]),
+            "Fully faithful answers": rate(sum(r["faithfulness"] == 1.0 for r in answered), len(answered)),
+            "Answer relevance, mean (answers given)": mean([r["relevance"] for r in rs]),
+            "Answers contradicting a key fact": str(sum("contradicted" in (r["verdicts"] or []) for r in rs)),
+            "Right sections given to the writer (FULL)":
+                rate(sum(r["outcome"]["level"] == "full" for r in graded), len(graded)),
+            "Not-in-docs questions declined (OK)": rate(sum(r["correctness"] == 1.0 for r in off), len(off)),
+            "Latency p50 / p95": f"{percentile(lat, .5):.1f} s / {percentile(lat, .95):.1f} s",
+            "LLM calls per question (mean)": f"{sum(r['llm_calls'] or 0 for r in rs) / len(rs):.1f}",
+            "Judge calls invalid twice (unjudged)": str(sum(len(r["unjudged"]) for r in rs)),
+        }
+
+    heads = {c: headline(sel[c]) for c in configs}
+    md = [*header, "",
+          f"Correctness = share of the golden key facts the answer covers (partly = half), judged against "
+          f"`answer_notes`; a not-in-docs question scores 1 if declined, 0 if answered. Faithfulness = share of "
+          f"the answer's claims supported by the chunks given to the writer. Relevance = does it address the "
+          f"question (yes 1, partly 0.5, no 0). One run per configuration: differences of 1-2 questions may be "
+          f"run-to-run noise. Scores come from an LLM judge and can be wrong in both directions.", "",
+          "## Table 1: Headline", ""]
+    md += table(["", *configs], [[name, *(heads[c][name] for c in configs)] for name in heads[configs[0]]])
+
+    cats = [c for c in CATEGORIES if count(questions, c)]
+    md += ["", "## Table 2: Correct by category", ""]
+    md += table(["Category", *configs], [[f"{cat} ({count(questions, cat)})",
+                                          *(correct([r for r in sel[c] if r["category"] == cat]) for c in configs)]
+                                         for cat in cats])
+
+    md += ["", "## Table 3: Why answers were wrong (questions with known answer sections)", "",
+           f"Correct = score >= {correct_at:.2f}; faithful = every claim supported (or no claims). "
+           "Order of checks: correct? then faithful? then were all needed sections given to the writer?", ""]
+    att = {c: [r["attribution"] for r in sel[c] if r["attribution"]] for c in configs}
+    md += table(["Diagnosis", *configs], [[a, *(rate(att[c].count(a), len(att[c])) for c in configs)]
+                                          for a in ATTRIBUTION])
+
+    by = {(r["id"], r["config"]): r for r in rows}
+    md += ["", "## Table 4: Per question", "", "C = correctness · F = faithfulness · R = relevance · – = not judged", ""]
+    md += table(["ID", "Question", *configs],
+                [[q["id"], short(q["question"], 40), *(judged_cell(by[(q["id"], c)]) if (q["id"], c) in by else "–"
+                                                      for c in configs)] for q in questions])
+    return "\n".join(md) + "\n"
