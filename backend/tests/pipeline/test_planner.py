@@ -64,18 +64,19 @@ def test_one_sub_query_found_other_not_gives_partial_answer(settings, world) -> 
         plans=[{"sub_queries": [{"query": "reporting deadline"}, {"query": "licence fee amount"}]}],
         grades=[grade(["pua220:r2:1"]), grade([], ["act854:s30:1"], "the fee amount"),   # attempt 1
                 grade([], ["act854:s30:1"]), grade([], ["act854:s30:1"])],               # retries 1 and 2
-        rewrites=[{"paraphrase": "prescribed licence fee", "expanded": "fee payable for licence"},
-                  {"step_back": "fees under the Act"}],
+        rewrites=[{"expanded": "fee payable for licence"}, {"step_back": "fees under the Act"}],
         answer="Initial particulars are due within six hours [pua220:r2:1]. The fee is not covered.")
     events = run(settings, "What is the deadline and what is the fee?")
     gen = [d for n, d in events if n == "trace" and d["node"] == "generate" and d["status"] == "start"][0]
     assert gen["data"]["unanswered"] == ["licence fee amount"]
+    assert gen["data"]["question"] == "reporting deadline"  # the writer is asked only the answered part
+    assert "Question: reporting deadline\n" in world.llm.generate_prompt
     assert gen["data"]["chunks"][0] == "pua220:r2:1" and "act854:s30:1" in gen["data"]["chunks"]  # verified first
     out = final(events)
     assert out["done"] == {"status": "partial"} and out["metrics"]["retries"] == 2
     # only the unanswered sub-query was rewritten and re-retrieved
-    assert world.queries == ["reporting deadline", "licence fee amount", "prescribed licence fee",
-                             "fee payable for licence", "fees under the Act"]
+    assert world.queries == ["reporting deadline", "licence fee amount", "fee payable for licence",
+                             "fees under the Act"]
 
 
 def test_rewrite_removes_the_sub_query_filters(settings, world, monkeypatch) -> None:
@@ -85,9 +86,9 @@ def test_rewrite_removes_the_sub_query_filters(settings, world, monkeypatch) -> 
                         seen.append(filters.parts) or [chunk("act854:s23:1")])
     world.llm = FakeLLM(plans=[{"sub_queries": [{"query": "a", "parts": ["IV"]}]}],
                         grades=[grade([], ["act854:s23:1"]), grade(["act854:s23:1"])],
-                        rewrites=[{"paraphrase": "a better", "expanded": "a formal"}])
+                        rewrites=[{"expanded": "a formal"}])
     run(settings, "a?")
-    assert seen == [["IV"], [], []]  # both rewritten variants searched without the filter
+    assert seen == [["IV"], []]  # the rewritten query is searched without the filter
 
 
 # --- routing (planner output decides the path) ---

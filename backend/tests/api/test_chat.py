@@ -50,7 +50,7 @@ def test_event_order_and_exactly_one_answer(client: TestClient) -> None:
     names = [n for n, _ in events]
     assert names == ["trace"] * 4 + ["answer", "citations", "metrics", "done"]
     answer = dict(events)["answer"]
-    assert "[act854:s23:1(2)]" in answer["text"]
+    assert answer["text"] == "The fine is up to RM500,000 [1]."  # model wrote [act854:s23:1(2)]; numbered by code
     assert answer["label"] == flow.UNCHECKED_LABEL  # never "verified"
     assert dict(events)["citations"] == [{"chunk_id": "act854:s23:1", "document": "ACT854",
                                          "section": "ACT854 s23", "page": "26"}]

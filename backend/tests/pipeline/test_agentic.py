@@ -36,16 +36,13 @@ def test_enough_evidence_goes_straight_to_generate(settings: Settings, world) ->
 
 def test_insufficient_grade_triggers_rewrite_then_retrieve_with_new_query(settings: Settings, world) -> None:
     world.by_query = {"What is the penalty?": [chunk("act854:s99:1", "99")],
-                      "penalty for failing to notify": [chunk("act854:s23:1")],
                       "offence of contravening the notification duty": [chunk("act854:s23:1"), chunk("act854:s24:1", "24")]}
     world.llm = FakeLLM(grades=[grade([], ["act854:s99:1"], missing="the penalty section"),
                                 grade(["act854:s23:1"])],
-                        rewrites=[{"paraphrase": "penalty for failing to notify",
-                                   "expanded": "offence of contravening the notification duty"}])
+                        rewrites=[{"expanded": "offence of contravening the notification duty"}])
     events = run(settings)
-    # retry 1 = multi-query: both variants searched, fused (s23 is in both lists, so it ranks first)
-    assert world.queries == ["What is the penalty?", "penalty for failing to notify",
-                             "offence of contravening the notification duty"]
+    # retry 1 = expansion: one new query, searched instead of the old one
+    assert world.queries == ["What is the penalty?", "offence of contravening the notification duty"]
     retrieve_ends = [d for n, d in events if n == "trace" and d["node"] == "retrieve" and d["status"] == "end"]
     assert [c["id"] for c in retrieve_ends[1]["data"]["queries"][0]["chunks"]] == ["act854:s23:1", "act854:s24:1"]
     assert world.llm.calls == ["plan", "grade", "rewrite", "grade", "generate"]
@@ -53,16 +50,15 @@ def test_insufficient_grade_triggers_rewrite_then_retrieve_with_new_query(settin
     assert out["done"] == {"status": "answered"} and out["metrics"]["retries"] == 1
     rewrite_end = [d for n, d in events if n == "trace" and d["node"] == "rewrite" and d["status"] == "end"][0]
     assert rewrite_end["data"]["rewrites"] == [{
-        "technique": "paraphrase + expansion", "from": "What is the penalty?",
-        "to": ["penalty for failing to notify", "offence of contravening the notification duty"],
+        "technique": "expansion", "from": "What is the penalty?",
+        "to": "offence of contravening the notification duty",
         "gave_up": False, "filters_removed": {"documents": [], "parts": []}}]
 
 
 def test_loop_stops_at_max_retries_and_never_calls_generate(settings: Settings, world) -> None:
     assert settings.max_retries == 2
     world.llm = FakeLLM(grades=[grade([], ["act854:s99:1"])] * 3,
-                        rewrites=[{"paraphrase": "second try", "expanded": "second formal try"},
-                                  {"step_back": "broader question"}])
+                        rewrites=[{"expanded": "second formal try"}, {"step_back": "broader question"}])
     events = run(settings, "Who won the 2022 World Cup?")
     assert world.llm.calls == ["plan", "grade", "rewrite", "grade", "rewrite", "grade"]  # no generate
     out = final(events)
@@ -71,12 +67,12 @@ def test_loop_stops_at_max_retries_and_never_calls_generate(settings: Settings, 
     assert out["metrics"]["retries"] == 2 and out["metrics"]["llm_calls"] == 6
     techniques = [d["data"]["rewrites"][0]["technique"] for n, d in events
                   if n == "trace" and d["node"] == "rewrite" and d["status"] == "end"]
-    assert techniques == ["paraphrase + expansion", "step-back"]  # escalates one technique per retry
+    assert techniques == ["expansion", "step-back"]  # escalates one technique per retry
 
 
 def test_repeated_rewrite_is_rejected_once_then_given_up(settings: Settings, world) -> None:
     world.llm = FakeLLM(grades=[grade([], ["act854:s99:1"])],
-                        rewrites=[{"paraphrase": "What is the  PENALTY?", "expanded": "what is the penalty?"}] * 2)
+                        rewrites=[{"expanded": "What is the  PENALTY?"}, {"expanded": "what is the penalty?"}])
     events = run(settings)
     assert world.llm.calls == ["plan", "grade", "rewrite", "rewrite"]
     assert world.queries == ["What is the penalty?"]  # nothing new to retrieve
@@ -104,24 +100,31 @@ def test_llm_timeout_ends_with_timeout(settings: Settings, world, monkeypatch: p
 
 # --- partial evidence (two sub-queries, as the planner creates them) ---
 
-def test_partial_evidence_generates_and_names_the_missing_part(settings: Settings, monkeypatch) -> None:
+def test_partial_evidence_asks_only_the_answered_part_and_code_names_the_rest(settings: Settings, monkeypatch) -> None:
     monkeypatch.setattr(Ctx, "emit", staticmethod(lambda *a, **k: None))
-    subs = [SubQuery(original="reporting deadline", query="q1", answered=True),
+    subs = [SubQuery(original="reporting deadline", query="q1", answered=True, partly=True),
             SubQuery(original="licence fee amount", query="q2", answered=False)]
     assert not_found_node({"sub_queries": subs}, Ctx(settings)) == {"status": "partial"}
     assert flow.after_not_found({"status": "partial"}) == "generate"
-    prompt = generate.build_prompt("q", [chunk("act854:s23:1")], ["licence fee amount"])
-    assert "could not be found in the documents" in prompt and "- licence fee amount" in prompt
+    prompts = []
+    monkeypatch.setattr(ollama, "chat", lambda url, model, prompt, *a, **k: prompts.append(prompt) or
+                        "Within six hours [pua220:r2:1].")
+    s = chunk("pua220:r2:1", "2")
+    out = generate.generate_node({"question": "deadline and fee?", "sub_queries": subs, "status": "partial",
+                                  "relevant": {s.id: s}, "supporting": {s.id: s}, "llm_calls": 0}, Ctx(settings))
+    assert "Question: reporting deadline\n" in prompts[0] and "fee" not in prompts[0].split("Question:")[1]
+    assert out["answer"] == ("Within six hours [pua220:r2:1].\n\n"
+                             "Not covered by the provided documents: licence fee amount")
 
 
 def test_retrieved_evidence_still_reaches_the_writer_on_the_partial_path(settings: Settings, world) -> None:
     # Two sub-queries: the first is judged sufficient, the second never is; s23 still reaches the writer.
     s35, s23 = chunk("act854:s35:1", "35"), chunk("act854:s23:1")
     no = {"sufficient": False, "missing": "penalty"}
-    world.by_query = {"q": [s35], "q2": [s35, s23], "p1": [s23], "e1": [s23], "s1": [s23]}
+    world.by_query = {"q": [s35], "q2": [s35, s23], "e1": [s23], "s1": [s23]}
     world.llm = FakeLLM(plans=[{"sub_queries": [{"query": "q"}, {"query": "q2"}]}],
                         grades=[{"sufficient": True}, no, no, no],
-                        rewrites=[{"paraphrase": "p1", "expanded": "e1"}, {"step_back": "s1"}])
+                        rewrites=[{"expanded": "e1"}, {"step_back": "s1"}])
     events = run(settings, "two part question?")
     gen = [d for n, d in events if n == "trace" and d["node"] == "generate" and d["status"] == "start"][0]
     assert gen["data"]["chunks"][0] == "act854:s35:1" and "act854:s23:1" in gen["data"]["chunks"]
@@ -130,9 +133,9 @@ def test_retrieved_evidence_still_reaches_the_writer_on_the_partial_path(setting
 
 def test_known_tradeoff_a_single_question_never_judged_sufficient_is_not_found(settings: Settings, world) -> None:
     # A "no" keeps nothing: after the retries, no partial answer from s23.
-    world.by_query = {q: [chunk("act854:s23:1")] for q in ("What is the penalty?", "p", "e", "s")}
+    world.by_query = {q: [chunk("act854:s23:1")] for q in ("What is the penalty?", "e", "s")}
     no = {"sufficient": False, "missing": "penalty for ignoring a directive"}
-    world.llm = FakeLLM(grades=[no] * 3, rewrites=[{"paraphrase": "p", "expanded": "e"}, {"step_back": "s"}])
+    world.llm = FakeLLM(grades=[no] * 3, rewrites=[{"expanded": "e"}, {"step_back": "s"}])
     events = run(settings)
     assert "generate" not in world.llm.calls
     assert final(events)["done"] == {"status": "not_found"}

@@ -26,7 +26,6 @@ from app.retrieval.search import Filters, Retrieved
 class SubQuery(BaseModel):
     original: str             # as planned (planner); the question itself in traditional mode
     query: str                # current wording; changed by Rewrite
-    variants: list[str] = []  # extra queries from Rewrite, all searched and fused; empty = just `query`
     filters: Filters = Filters()
     answered: bool = False    # the grader judged its sources sufficient
     partly: bool = False      # set together with `answered` by the yes/no grader
@@ -106,6 +105,24 @@ def cited_ids(answer: str, given=None) -> list[str]:
     return list(dict.fromkeys(resolve(i, given) if given else i for i in ids))
 
 
+MARKER = re.compile(r"(\s*)\[([^\]]+)\]")
+
+
+def number_markers(text: str, order: list[str], given) -> str:
+    """'[act854:s23:1]' -> '[1]', numbered as in `order` (the citations list), so the user sees short markers.
+    A marker citing no given source is dropped; brackets without a chunk ID are left as written."""
+    num = {id_: n for n, id_ in enumerate(order, 1)}
+
+    def repl(m: re.Match) -> str:
+        ids = CHUNK_ID.findall(m.group(2))
+        if not ids:
+            return m.group(0)
+        nums = list(dict.fromkeys(num[r] for r in (resolve(i, given) for i in ids) if r in num))
+        return f"{m.group(1)}[{', '.join(map(str, nums))}]" if nums else ""
+
+    return MARKER.sub(repl, text)
+
+
 def resolve(id_: str, given) -> str:
     """The model reads our chunk counter as a subsection ('pua220:r2:1' cited as 'pua220:r2:2' for reg 2(2)).
     If exactly one given source has the same document and section, it is that source; otherwise unchanged."""
@@ -144,14 +161,16 @@ def not_found(label: str, started: float, llm_calls: int, retries: int = 0) -> I
 
 def answer(text: str, chunks: list[Retrieved], label: str, started: float, llm_calls: int,
            retries: int = 0, status: str = "answered") -> Iterator[Event]:
-    """Final events for a written answer. Only chunks given to the writer can be cited."""
+    """Final events for a written answer. Only chunks given to the writer can be cited; the text's markers
+    become [1], [2]... in the order of the citations list."""
     by_id = {c.id: c for c in chunks}
+    order = [i for i in cited_ids(text, by_id) if i in by_id]
     citations = [{"chunk_id": i, "document": by_id[i].short_name, "section": by_id[i].label,
-                  "page": by_id[i].pages} for i in cited_ids(text, by_id) if i in by_id]
+                  "page": by_id[i].pages} for i in order]
     # The model sometimes writes a sentence and then NOT_FOUND; without citations that is a not-found.
     if not text or (NOT_FOUND in text and not citations):
         yield from not_found(NOT_FOUND_LABEL, started, llm_calls, retries)
         return
-    yield "answer", {"text": text.replace(NOT_FOUND, "").strip(), "label": label}
+    yield "answer", {"text": number_markers(text.replace(NOT_FOUND, "").strip(), order, by_id), "label": label}
     yield "citations", citations
     yield from finish(status, started, llm_calls, retries)

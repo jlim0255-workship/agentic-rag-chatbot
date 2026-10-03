@@ -74,9 +74,9 @@ def show(turn: dict) -> None:
                        f"{m['retries']} retries")
         if turn["citations"]:
             with st.expander(f"Sources ({len(turn['citations'])})"):
-                for c in turn["citations"]:
+                for n, c in enumerate(turn["citations"], 1):  # [n] matches the markers in the answer
                     chunk = get_chunk(c["chunk_id"])
-                    st.markdown(f"**{c['section']}** · page {c['page']} · {chunk['heading']} · `{c['chunk_id']}`")
+                    st.markdown(f"**[{n}] {c['section']}** · page {c['page']} · {chunk['heading']} · `{c['chunk_id']}`")
                     st.text(chunk["text"])
         if turn["trace"]:
             with st.expander(f"Trace ({len(turn['trace'])} steps)"):

@@ -34,6 +34,7 @@ class FakeLLM:
             kind = "plan" if "sub_queries" in props else "grade" if "sufficient" in props else "rewrite"
         self.calls.append(kind)
         if kind == "generate":
+            self.generate_prompt = prompt
             return self.answer
         if kind == "plan":
             if self.plans is None:
