@@ -5,7 +5,7 @@ import pytest
 from app.config import Settings
 from app.llm import ollama
 from app.retrieval import search
-from tests.fakes import FakeLLM, FakeToolModel, chunk, fake_connection
+from tests.fakes import FakeLLM, chunk, fake_connection
 
 
 @pytest.fixture
@@ -16,7 +16,6 @@ def settings() -> Settings:
         embed_model="qwen3-embedding:0.6b",
         embed_dim=1024,
         database_url="postgresql://test:test@localhost:1/test",
-        staff_database_url="postgresql://test:test@localhost:1/staff",
         ollama_base_url="http://ollama.test:11434",
         health_timeout_s=1,
         top_k_vector=20, top_k_bm25=20, top_k_final=5,
@@ -32,10 +31,8 @@ def world(monkeypatch: pytest.MonkeyPatch):
         by_query: dict[str, list] = {}
         queries: list[str] = []  # every query searched, in order
         llm = FakeLLM()
-        tool_calls: list[dict] = []  # what the fake tool_agent model "calls"; default: no tool
 
     w = World()
-    monkeypatch.setattr("app.pipeline.nodes.tool_agent.ChatOllama", lambda **_k: FakeToolModel(w.tool_calls))
 
     def fake_retrieve(conn, s, query, filters=None, timeout_s=None, **_k):
         w.queries.append(query)

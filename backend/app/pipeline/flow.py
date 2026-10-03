@@ -9,9 +9,6 @@ AGENTIC: the LLM's judgements choose the route; code enforces the limits.
 
     planner ─┬─ out_of_scope ─► end (fixed reply written by code, no writer call)
      (LLM)   └─ complex ▼
-               tool_agent ─┬─ calls lookup_staff ─► tools (ToolNode, no LLM) ─┐   staff tool:
-                (LLM)      └─ no tool call ───────────────────────────────────┤   its list is appended to the
-                                                                              ▼   final answer by code
                retrieve ─► grade ─┬─ sufficient ─────────────────────► generate ─► end
                (no LLM)   (LLM)   ├─ not sufficient, retries left ─► rewrite ─► back to retrieve
                                   │                                  (LLM)
@@ -25,17 +22,14 @@ judge mostly flagged correct sentences). Citations are still filtered by code in
 Where things live:
     flow.py        this map, the decisions between steps (after_*), and the runner (run)
     core.py        state, time budget, trace/SSE events, citation parsing (shared plumbing)
-    nodes/*.py     one step each: planner, tool_agent, retrieve, grade, rewrite, not_found, generate
-    tools.py       tools the agent may call (lookup_staff), run by LangGraph's ToolNode
+    nodes/*.py     one step each: planner, retrieve, grade, rewrite, not_found, generate
 """
 from __future__ import annotations
 
 from collections.abc import Iterator
 from functools import partial
 
-from langchain_core.messages import ToolMessage
 from langgraph.graph import END, StateGraph
-from langgraph.prebuilt import ToolNode, tools_condition
 
 from app.config import Settings
 from app.llm.ollama import OllamaTimeout
@@ -47,8 +41,6 @@ from app.pipeline.nodes.not_found import not_found_node
 from app.pipeline.nodes.planner import planner_node
 from app.pipeline.nodes.retrieve import retrieve_node
 from app.pipeline.nodes.rewrite import rewrite_node
-from app.pipeline.nodes.tool_agent import tool_agent_node
-from app.pipeline.tools import lookup_staff
 
 UNCHECKED_LABEL = "Not checked: no automated source check"
 FIXED_REPLIES = {  # route -> (text, label); written by code so the model never answers from its own knowledge
@@ -61,7 +53,7 @@ FIXED_REPLIES = {  # route -> (text, label); written by code so the model never 
 # --- decisions between steps (code, not LLM) ---
 
 def after_planner(state: State) -> str:
-    return END if state["route"] in FIXED_REPLIES else "tool_agent"
+    return END if state["route"] in FIXED_REPLIES else "retrieve"
 
 
 def after_retrieve(state: State) -> str:
@@ -98,15 +90,18 @@ def traditional_graph(ctx: Ctx):
 
 def agentic_graph(ctx: Ctx):
     g = StateGraph(State)
-    for name, node in [("planner", planner_node), ("retrieve", retrieve_node), ("grade", grade_node),
-                       ("rewrite", rewrite_node), ("not_found", not_found_node), ("generate", generate_node)]:
-        g.add_node(name, partial(node, ctx=ctx))
-    g.add_node("tool_agent", partial(tool_agent_node, ctx=ctx))
-    g.add_node("tools", ToolNode([lookup_staff]))
+    # for name, node in [("planner", planner_node), ("retrieve", retrieve_node), ("grade", grade_node), ("rewrite", rewrite_node), ("not_found", not_found_node), ("generate", generate_node)]:
+    #     g.add_node(name, partial(node, ctx=ctx))
+    g.add_node("planner", partial(planner_node, ctx=ctx))
+    g.add_node("retrieve", partial(retrieve_node, ctx=ctx))
+    g.add_node("grade", partial(grade_node, ctx=ctx))
+    g.add_node("rewrite", partial(rewrite_node, ctx=ctx))
+    g.add_node("not_found", partial(not_found_node, ctx=ctx))
+    g.add_node("generate", partial(generate_node, ctx=ctx))
+
     g.set_entry_point("planner")
-    g.add_conditional_edges("planner", after_planner, ["tool_agent", END])
-    g.add_conditional_edges("tool_agent", tools_condition, {"tools": "tools", END: "retrieve"})
-    g.add_edge("tools", "retrieve")
+
+    g.add_conditional_edges("planner", after_planner, ["retrieve", END])
     g.add_conditional_edges("retrieve", after_retrieve, ["grade", "generate", END])
     g.add_conditional_edges("grade", partial(after_grade, settings=ctx.settings), ["generate", "rewrite", "not_found"])
     g.add_edge("rewrite", "retrieve")
@@ -116,16 +111,9 @@ def agentic_graph(ctx: Ctx):
 
 
 def recursion_limit(settings: Settings) -> int:
-    """Longest agentic path: planner, tool_agent, tools, (retrieve, grade, rewrite) per retry, final retrieve,
-    grade, not_found, generate. LangGraph raises if a run ever exceeds it."""
-    return 3 + 3 * settings.max_retries + 4 + 1
-
-
-def contacts(state: State) -> str:
-    """The lookup_staff result, to append under the answer (empty if the tool was not called or failed)."""
-    text = next((m.content for m in reversed(state.get("messages", []))
-                 if isinstance(m, ToolMessage) and m.name == "lookup_staff" and m.status != "error"), "")
-    return f"\n\n{text}" if text else ""
+    """Longest agentic path: planner, (retrieve, grade, rewrite) per retry, final retrieve, grade, not_found,
+    generate. LangGraph raises if a run ever exceeds it."""
+    return 1 + 3 * settings.max_retries + 4 + 1
 
 
 # --- the runner: one graph run -> SSE events ---
@@ -157,7 +145,7 @@ def run(question: str, mode: str, settings: Settings) -> Iterator[Event]:
         yield from core.fixed_reply(text, label, final["route"], ctx.started, calls, retries)
         return
     if final["status"] == "not_found" or "answer" not in final:
-        yield from core.not_found(core.NOT_FOUND_LABEL, ctx.started, calls, retries, contacts(final))
+        yield from core.not_found(core.NOT_FOUND_LABEL, ctx.started, calls, retries)
         return
     yield from core.answer(final["answer"], final["passed"], UNCHECKED_LABEL, ctx.started, calls, retries,
-                           status=final["status"], extra=contacts(final))
+                           status=final["status"])

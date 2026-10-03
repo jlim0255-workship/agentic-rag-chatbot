@@ -32,7 +32,6 @@ class Settings(BaseSettings):
     embed_timeout_s: float = Field(default=120, gt=0)  # per embed request; first call also loads the model
 
     database_url: str
-    staff_database_url: str  # separate employee_demo database for the staff tool
 
     # Retrieval. No defaults: set in .env (keep TOP_K_FINAL small for 4 GB VRAM).
     top_k_vector: int = Field(gt=0)

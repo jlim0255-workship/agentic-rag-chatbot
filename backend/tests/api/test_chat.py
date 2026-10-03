@@ -13,7 +13,7 @@ from app.config import Settings, get_settings
 from app.llm import ollama
 from app.pipeline import core, flow
 from app.retrieval import search
-from tests.fakes import FakeToolModel, fake_connection
+from tests.fakes import fake_connection
 
 CHUNKS = [search.Retrieved(id="act854:s23:1", short_name="ACT854", section="23", subsection=None,
                            heading="Duty to give notification", part="IV", page_start=26, page_end=26,
@@ -115,7 +115,6 @@ def test_question_budget_used_up_before_generation(client: TestClient, settings:
 def test_agentic_mode_streams_in_prd_order(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.pipeline.nodes.planner.connection.connect", fake_connection)
     monkeypatch.setattr("app.pipeline.nodes.planner.allowed_filters", lambda conn: ([("ACT854", "Act")], []))
-    monkeypatch.setattr("app.pipeline.nodes.tool_agent.ChatOllama", lambda **_k: FakeToolModel())
     plan = json.dumps({"sub_queries": [{"query": "penalty for not notifying"}]})
     grade = json.dumps({"sufficient": True, "missing": ""})
     monkeypatch.setattr(ollama, "chat", lambda *a, format=None, **k:
@@ -125,7 +124,7 @@ def test_agentic_mode_streams_in_prd_order(client: TestClient, monkeypatch: pyte
     names = [n for n, _ in events]
     assert set(names[:-4]) == {"trace"} and names[-4:] == ["answer", "citations", "metrics", "done"]
     assert dict(events)["done"] == {"status": "answered"}
-    assert dict(events)["metrics"]["llm_calls"] == 4  # plan, tool choice, grade, generate
+    assert dict(events)["metrics"]["llm_calls"] == 3  # plan, grade, generate
     assert dict(events)["answer"]["label"] == flow.UNCHECKED_LABEL
 
 

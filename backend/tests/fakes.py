@@ -6,7 +6,6 @@ import json
 from contextlib import contextmanager
 
 from app.config import Settings
-from langchain_core.messages import AIMessage
 
 from app.pipeline.flow import run as run_flow
 from app.retrieval.search import Retrieved
@@ -51,19 +50,6 @@ def grade(relevant: list[str], not_relevant: list[str] = (), missing: str = "") 
     The signature is kept from the needs grader so the routing tests read the same."""
     sufficient = bool(relevant) and not missing
     return {"sufficient": sufficient, "missing": "" if sufficient else (missing or "the answer")}
-
-
-class FakeToolModel:
-    """Stands in for ChatOllama(...).bind_tools([...]) in tool_agent: replies with the given tool calls."""
-
-    def __init__(self, tool_calls: list[dict] | None = None):
-        self.tool_calls = tool_calls or []
-
-    def bind_tools(self, tools):
-        return self
-
-    def invoke(self, prompt):
-        return AIMessage(content="", tool_calls=self.tool_calls)
 
 
 @contextmanager

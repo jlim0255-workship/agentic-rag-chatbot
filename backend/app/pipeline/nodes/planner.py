@@ -105,14 +105,25 @@ def planner_node(state: State, ctx: Ctx) -> dict:
     # pass in the structured prompt to the LLM, get back a structured plan
     plan, calls = call_structured(prompt, PlanOutput, ctx.settings, ctx.timeout())
     route = plan.route if plan else "complex"
-    
-    subs, dropped = clean_plan(plan, state["question"], {d for d, _ in docs}, {p for p, _ in parts},
-                               ctx.settings.max_sub_queries)
+
+    # clean the sub queries
+    # subs is a typed list of SubQuery, 
+    # dropped is a list of filter values that were not in the database
+    subs, dropped = clean_plan(plan=plan, 
+                               question=state["question"], 
+                               docs={d for d, _ in docs}, 
+                               parts={p for p, _ in parts}, 
+                               max_n=ctx.settings.max_sub_queries)
+
     summary = (f"route: {route}" if route == "out_of_scope"
                else f"route: {route} · {len(subs)} sub-quer{'y' if len(subs) == 1 else 'ies'}")
     ctx.emit("planner", "end", summary,
-             {"route": route, "sub_queries": [{"query": s.query, "filters": s.filters.model_dump()} for s in subs],
-              "dropped_filters": dropped, "fallback": plan is None})
-    return {"route": route, "sub_queries": subs, "current": list(range(len(subs))),
+             {"route": route, 
+              "sub_queries": [{"query": s.query, "filters": s.filters.model_dump()} for s in subs],
+              "dropped_filters": dropped, "fallback": plan is None}
+              )
+    return {"route": route, 
+            "sub_queries": subs, 
+            "current": list(range(len(subs))),
             "query_history": [state["question"], *(s.query for s in subs)],
             "llm_calls": state["llm_calls"] + calls}

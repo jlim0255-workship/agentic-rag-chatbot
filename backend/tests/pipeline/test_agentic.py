@@ -22,12 +22,12 @@ def test_enough_evidence_goes_straight_to_generate(settings: Settings, world) ->
     world.by_query = {"What is the penalty?": [chunk("act854:s23:1"), chunk("act854:s99:1", "99")]}
     world.llm = FakeLLM(grades=[grade(["act854:s23:1"], ["act854:s99:1"])])
     events = run(settings)
-    assert trace_nodes(events) == ["planner:start", "planner:end", "tool_agent:start", "tool_agent:end", "retrieve:start", "retrieve:end", "grade:start", "grade:end",
+    assert trace_nodes(events) == ["planner:start", "planner:end", "retrieve:start", "retrieve:end", "grade:start", "grade:end",
                                    "generate:start", "generate:end"]
     assert [n for n, _ in events if n != "trace"] == ["answer", "citations", "metrics", "done"]
     out = final(events)
     assert out["done"] == {"status": "answered"}
-    assert out["metrics"]["llm_calls"] == 4 and out["metrics"]["retries"] == 0
+    assert out["metrics"]["llm_calls"] == 3 and out["metrics"]["retries"] == 0
     gen_start = [d for n, d in events if n == "trace" and d["node"] == "generate" and d["status"] == "start"][0]
     # steer, don't delete: verified chunk first, the other retrieved chunk still reaches the writer
     assert gen_start["data"]["chunks"] == ["act854:s23:1", "act854:s99:1"]
@@ -68,7 +68,7 @@ def test_loop_stops_at_max_retries_and_never_calls_generate(settings: Settings, 
     out = final(events)
     assert out["answer"]["text"] == "Not found in the provided documents."
     assert out["done"] == {"status": "not_found"}
-    assert out["metrics"]["retries"] == 2 and out["metrics"]["llm_calls"] == 7
+    assert out["metrics"]["retries"] == 2 and out["metrics"]["llm_calls"] == 6
     techniques = [d["data"]["rewrites"][0]["technique"] for n, d in events
                   if n == "trace" and d["node"] == "rewrite" and d["status"] == "end"]
     assert techniques == ["paraphrase + expansion", "step-back"]  # escalates one technique per retry

@@ -222,3 +222,6 @@ data/raw/*.pdf
 data/chunks.jsonl
 data/work/
 eval/reports/*
+
+# understand anything plugin
+.ua/

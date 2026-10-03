@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from app.config import Settings
 
 REQUIRED = {"EMBED_MODEL": "qwen3-embedding:0.6b", "EMBED_DIM": "1024",
-            "DATABASE_URL": "postgresql://u:p@localhost:5432/db", "STAFF_DATABASE_URL": "postgresql://u:p@localhost:5432/staff",
+            "DATABASE_URL": "postgresql://u:p@localhost:5432/db",
             "TOP_K_VECTOR": "20", "TOP_K_BM25": "20", "TOP_K_FINAL": "5",
             "LLM_CALL_TIMEOUT_S": "90", "QUESTION_BUDGET_S": "300"}
 

@@ -9,10 +9,9 @@ import re
 import time
 from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Annotated, Any, TypedDict
+from typing import Any, TypedDict
 
 from langgraph.config import get_stream_writer
-from langgraph.graph.message import add_messages
 from pydantic import BaseModel
 
 from app.config import Settings
@@ -49,7 +48,6 @@ class State(TypedDict, total=False):
     answer: str                         # the writer's text, with [chunk id] citation markers
     status: str                         # answered | partial | not_found
     route: str                          # agentic planner: out_of_scope | complex
-    messages: Annotated[list, add_messages]  # tool_agent's AIMessage + ToolNode's ToolMessage
 
 
 def new_state(question: str) -> State:
@@ -140,21 +138,20 @@ def fixed_reply(text: str, label: str, status: str, started: float, llm_calls: i
     yield from finish(status, started, llm_calls, retries)
 
 
-def not_found(label: str, started: float, llm_calls: int, retries: int = 0, extra: str = "") -> Iterator[Event]:
-    yield from fixed_reply(NOT_FOUND_TEXT + extra, label, "not_found", started, llm_calls, retries)
+def not_found(label: str, started: float, llm_calls: int, retries: int = 0) -> Iterator[Event]:
+    yield from fixed_reply(NOT_FOUND_TEXT, label, "not_found", started, llm_calls, retries)
 
 
 def answer(text: str, chunks: list[Retrieved], label: str, started: float, llm_calls: int,
-           retries: int = 0, status: str = "answered", extra: str = "") -> Iterator[Event]:
-    """Final events for a written answer. Only chunks given to the writer can be cited.
-    `extra` is text written by code (the staff contact list), appended after the writer's answer."""
+           retries: int = 0, status: str = "answered") -> Iterator[Event]:
+    """Final events for a written answer. Only chunks given to the writer can be cited."""
     by_id = {c.id: c for c in chunks}
     citations = [{"chunk_id": i, "document": by_id[i].short_name, "section": by_id[i].label,
                   "page": by_id[i].pages} for i in cited_ids(text, by_id) if i in by_id]
     # The model sometimes writes a sentence and then NOT_FOUND; without citations that is a not-found.
     if not text or (NOT_FOUND in text and not citations):
-        yield from not_found(NOT_FOUND_LABEL, started, llm_calls, retries, extra)
+        yield from not_found(NOT_FOUND_LABEL, started, llm_calls, retries)
         return
-    yield "answer", {"text": text.replace(NOT_FOUND, "").strip() + extra, "label": label}
+    yield "answer", {"text": text.replace(NOT_FOUND, "").strip(), "label": label}
     yield "citations", citations
     yield from finish(status, started, llm_calls, retries)
