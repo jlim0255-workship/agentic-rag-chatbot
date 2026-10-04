@@ -18,7 +18,7 @@ import re
 from app.config import Settings, get_settings
 from app.llm import ollama
 from app.pipeline.flow import run
-from eval.run import collect, run_e2e
+from eval.run import EVAL_DIR, collect, run_e2e
 
 DEFAULT_MODEL = "gemma4:31b-cloud"
 
@@ -54,9 +54,9 @@ def main() -> None:
     settings = get_settings().model_copy(update={"fast_model": args.model, "answer_model": args.model})
     preflight(settings)
     slug = re.sub(r"[^A-Za-z0-9.]+", "-", args.model)
-    stem = run_e2e([args.mode] if args.mode else ["traditional", "agentic"],
+    rows = run_e2e([args.mode] if args.mode else ["traditional", "agentic"],
                    lambda question, mode: ask_local(question, mode, settings), settings, name=f"e2e-{slug}")
-    print(f"report: {stem}.md")
+    print(f"rows: {rows}\nnext: python -m eval.judge {rows.relative_to(EVAL_DIR.parent).as_posix()}")
 
 
 if __name__ == "__main__":

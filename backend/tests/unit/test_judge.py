@@ -16,7 +16,7 @@ CHUNKS = {"pua220:r2:1": "[pua220:r2:1] Period\nwithin six hours"}
 def row(status="answered", answer="Within six hours [pua220:r2:1].", level="full", **extra) -> dict:
     return {"id": "S01", "category": "single_hop", "mode": "agentic", "model": "m", "status": status,
             "answer": answer, "passed": "pua220:r2:1", "outcome": {"level": level} if level else None,
-            "latency_ms": 1000, "llm_calls": 3, **extra}
+            "latency_ms": 1000, "llm_calls": 3, "cited": 1, "cited_expected": 1, **extra}
 
 
 def judge_replies(monkeypatch, *replies) -> list[str]:
@@ -77,3 +77,6 @@ def test_report_has_one_column_per_configuration() -> None:
     assert "|  | m traditional | m agentic |" in md
     assert "| Correct (score >= 0.75), all questions | 1/1 (100%) | 1/1 (100%) |" in md
     assert "| Success | 1/1 (100%) | 1/1 (100%) |" in md
+    # code-measured metrics (formerly the separate -e2e.md report) sit in the same headline
+    assert "| Answerable questions wrongly declined | 0/1 (0%) | 0/1 (0%) |" in md
+    assert "| Citations pointing at a needed section | 1/1 (100%) | 1/1 (100%) |" in md

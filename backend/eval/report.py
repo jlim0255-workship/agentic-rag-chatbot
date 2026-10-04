@@ -108,7 +108,7 @@ def retrieval_report(rows: list[dict], methods: list[str], questions: list[dict]
     return "\n".join(md) + "\n"
 
 
-# --- Experiment B: traditional vs agentic, end to end ---
+# --- Experiment B: per-answer file for manual review (the headline report is judge_report below) ---
 
 STATUS = {"answered": "answered", "partial": "partial answer", "not_found": "said not found",
           "out_of_scope": "refused: out of scope", "timeout": "timeout", "error": "error"}
@@ -121,65 +121,6 @@ def answer_cell(r: dict) -> str:
         return f"{'OK' if r['status'] in DECLINED else 'WRONG'} · {status}"
     evidence = cell(r["outcome"]) if r["outcome"] else "–"
     return f"{evidence} · {status}"
-
-
-def e2e_metrics(sel: list[dict]) -> dict[str, str]:
-    """Headline values for one mode's rows."""
-    graded = [r for r in sel if r["outcome"]]  # questions with known answer sections
-    off = [r for r in sel if r["category"] == "not_in_corpus"]
-    answerable = [r for r in sel if r["category"] in ("single_hop", "multi_hop")]
-    lat = [r["latency_ms"] / 1000 for r in sel if r["latency_ms"] is not None]
-
-    def full(rows: list[dict]) -> str:
-        return rate(sum(r["outcome"]["level"] == "full" for r in rows), len(rows))
-
-    return {
-        "Right sections given to the writer (FULL)": full(graded),
-        "Multi-hop questions: FULL": full([r for r in graded if r["category"] == "multi_hop"]),
-        "Not-in-docs questions declined (OK)": rate(sum(r["status"] in DECLINED for r in off), len(off)),
-        "Answerable questions wrongly declined": rate(sum(r["status"] in DECLINED for r in answerable), len(answerable)),
-        "Citations pointing at a needed section":
-            rate(sum(r["cited_expected"] for r in graded), sum(r["cited"] for r in graded)),
-        "Latency p50 / p95": f"{percentile(lat, .5):.1f} s / {percentile(lat, .95):.1f} s",
-        "LLM calls per question (mean)": f"{sum(r['llm_calls'] or 0 for r in sel) / len(sel):.1f}",
-        "Timeouts / errors": f"{sum(r['status'] == 'timeout' for r in sel)} / {sum(r['status'] == 'error' for r in sel)}",
-    }
-
-
-def category_cell(sel: list[dict], category: str) -> str:
-    """FULL rate for categories with known sections; OK rate for not_in_corpus."""
-    if category == "not_in_corpus":
-        return "OK " + rate(sum(r["status"] in DECLINED for r in sel), len(sel))
-    graded = [r for r in sel if r["outcome"]]
-    return "FULL " + rate(sum(r["outcome"]["level"] == "full" for r in graded), len(graded))
-
-
-def e2e_report(rows: list[dict], modes: list[str], questions: list[dict], header: list[str]) -> str:
-    """rows: one per (question, mode) with keys id, category, mode, status, outcome, label, cited,
-    cited_expected, latency_ms, llm_calls, retries."""
-    by = {(r["id"], r["mode"]): r for r in rows}
-    metrics = {m: e2e_metrics([r for r in rows if r["mode"] == m]) for m in modes}
-    md = [*header, "", LEGEND, "", "## Table 1: Headline", ""]
-    md += table(["", *modes], [[name, *(metrics[m][name] for m in modes)] for name in metrics[modes[0]]])
-
-    cats = [c for c in CATEGORIES if count(questions, c)]
-    md += ["", "## Table 2: By category", "", "FULL for questions with known sections; OK for not-in-docs questions.", ""]
-    md += table(["Category", *modes],
-                [[f"{c} ({count(questions, c)})",
-                  *(category_cell([r for r in rows if r["mode"] == m and r["category"] == c], c) for m in modes)]
-                 for c in cats])
-
-    # Diff compares what matters: evidence level + final status.
-    def key(r: dict) -> tuple:
-        return (r["outcome"]["level"] if r["outcome"] else None, r["status"])
-
-    md += ["", "## Table 3: Per question", "", "Diff = * where the modes differ in evidence or final status.", ""]
-    md += table(["ID", "Question", "Needs", *modes, "Diff"],
-                [[q["id"], short(q["question"]), ", ".join(section_label(e) for e in q["expected_sections"]) or "–",
-                  *(answer_cell(by[(q["id"], m)]) for m in modes),
-                  "*" if len({key(by[(q["id"], m)]) for m in modes}) > 1 else ""] for q in questions])
-    md += ["", "Answer correctness is not scored automatically; see the `-answers.md` file(s) for manual review."]
-    return "\n".join(md) + "\n"
 
 
 def answers_file(mode: str, rows: list[dict], questions: list[dict], when: str) -> str:
@@ -223,10 +164,16 @@ def judge_report(rows: list[dict], questions: list[dict], header: list[str], cor
         return rate(sum((r["correctness"] or 0) >= correct_at for r in rs), len(rs))
 
     def headline(rs: list[dict]) -> dict[str, str]:
+        """Judged scores first, then the measured ones (computed by code in eval.run, no judge)."""
         answered = [r for r in rs if r["faithfulness"] is not None]
-        graded = [r for r in rs if r["outcome"]]
+        graded = [r for r in rs if r["outcome"]]  # questions with known answer sections
         off = [r for r in rs if r["category"] == "not_in_corpus"]
+        answerable = [r for r in rs if r["category"] in ("single_hop", "multi_hop")]
         lat = [r["latency_ms"] / 1000 for r in rs if r["latency_ms"] is not None]
+
+        def full(sel: list[dict]) -> str:
+            return rate(sum(r["outcome"]["level"] == "full" for r in sel), len(sel))
+
         return {
             "Correct (score >= %.2f), all questions" % correct_at: correct(rs),
             "Correctness, mean": mean([r["correctness"] for r in rs]),
@@ -234,11 +181,17 @@ def judge_report(rows: list[dict], questions: list[dict], header: list[str], cor
             "Fully faithful answers": rate(sum(r["faithfulness"] == 1.0 for r in answered), len(answered)),
             "Answer relevance, mean (answers given)": mean([r["relevance"] for r in rs]),
             "Answers contradicting a key fact": str(sum("contradicted" in (r["verdicts"] or []) for r in rs)),
-            "Right sections given to the writer (FULL)":
-                rate(sum(r["outcome"]["level"] == "full" for r in graded), len(graded)),
+            "Right sections given to the writer (FULL)": full(graded),
+            "Multi-hop questions: FULL": full([r for r in graded if r["category"] == "multi_hop"]),
             "Not-in-docs questions declined (OK)": rate(sum(r["correctness"] == 1.0 for r in off), len(off)),
+            "Answerable questions wrongly declined":
+                rate(sum(r["status"] in DECLINED for r in answerable), len(answerable)),
+            "Citations pointing at a needed section":
+                rate(sum(r["cited_expected"] for r in graded), sum(r["cited"] for r in graded)),
             "Latency p50 / p95": f"{percentile(lat, .5):.1f} s / {percentile(lat, .95):.1f} s",
             "LLM calls per question (mean)": f"{sum(r['llm_calls'] or 0 for r in rs) / len(rs):.1f}",
+            "Timeouts / errors":
+                f"{sum(r['status'] == 'timeout' for r in rs)} / {sum(r['status'] == 'error' for r in rs)}",
             "Judge calls invalid twice (unjudged)": str(sum(len(r["unjudged"]) for r in rs)),
         }
 

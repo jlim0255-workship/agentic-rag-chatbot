@@ -5,6 +5,8 @@ Usage (from backend/; DB ingested, Ollama running):
     python -m eval.run retrieval                 # Experiment A: semantic vs BM25 vs hybrid, no LLM (~1 min)
     python -m eval.run e2e                       # Experiment B: traditional vs agentic via the API (~25 min)
     python -m eval.run e2e --mode agentic        #   one mode only
+Experiment B writes answers and code-measured fields to -rows.jsonl; `python -m eval.judge` turns them
+into the report.
 """
 from __future__ import annotations
 
@@ -20,7 +22,7 @@ import httpx
 from app.config import get_settings
 from app.db.connection import connect
 from app.retrieval.search import retrieve
-from eval.report import answers_file, e2e_report, outcome, retrieval_report, section_label
+from eval.report import answers_file, outcome, retrieval_report, section_label
 
 EVAL_DIR = Path(__file__).parent
 GOLDEN = EVAL_DIR / "golden.jsonl"
@@ -48,11 +50,12 @@ def expected_sections(conn, question: dict) -> list[tuple[str, set[str]]]:
     return out
 
 
-def save(name: str, markdown: str, rows: list[dict]) -> Path:
-    """Write <timestamp>-<name>.md and a flat .csv (one line per row) for spreadsheets."""
+def save(name: str, markdown: str | None, rows: list[dict]) -> Path:
+    """Write <timestamp>-<name>.md (unless markdown is None) and a flat .csv (one line per row) for spreadsheets."""
     REPORTS.mkdir(exist_ok=True)
     stem = REPORTS / f"{datetime.now():%Y%m%d-%H%M}-{name}"
-    stem.with_suffix(".md").write_text(markdown, encoding="utf-8")
+    if markdown is not None:
+        stem.with_suffix(".md").write_text(markdown, encoding="utf-8")
     flat = [{k: (v["level"] if k == "outcome" and v else json.dumps(v, ensure_ascii=False) if isinstance(v, list) else v)
              for k, v in r.items() if k != "answer"} for r in rows]
     with stem.with_suffix(".csv").open("w", newline="", encoding="utf-8") as f:
@@ -132,8 +135,11 @@ def collect(events) -> dict:
 
 
 def run_e2e(modes: list[str], ask_fn, settings, name: str = "e2e") -> Path:
-    """ask_fn(question, mode) -> collect()-style dict. `settings` must hold the models ask_fn really uses,
-    so the report header names them."""
+    """ask_fn(question, mode) -> collect()-style dict. Returns the path of the -rows.jsonl file.
+
+    Scores what code can measure exactly (evidence given to the writer vs the golden sections, status,
+    citations, latency, calls) into the rows; there is no Markdown report here: eval.judge reads the rows
+    and writes the one headline report. `settings` must hold the models ask_fn really uses (saved per row)."""
     questions = load_golden()
     rows = []
     with connect(settings.database_url, settings.health_timeout_s) as conn:
@@ -154,18 +160,16 @@ def run_e2e(modes: list[str], ask_fn, settings, name: str = "e2e") -> Path:
                 "citations": " ".join(res["citations"]), "answer": res["answer"]})
 
     when = f"{datetime.now():%Y-%m-%d %H:%M}"
-    header = [f"# Traditional vs agentic, end to end ({when})", "",
-              f"{len(questions)} questions · answer model `{settings.answer_model}` · embedding `{settings.embed_model}` · "
-              f"latency excludes one warm-up question per mode."]
-    stem = save(name, e2e_report(rows, modes, questions, header), rows)
+    stem = save(name, None, rows)
     # Raw rows incl. answer text, so eval.judge can score them without generating again.
-    with stem.with_name(f"{stem.name}-rows.jsonl").open("w", encoding="utf-8") as f:
+    rows_path = stem.with_name(f"{stem.name}-rows.jsonl")
+    with rows_path.open("w", encoding="utf-8") as f:
         for r in rows:
             f.write(json.dumps({**r, "model": settings.answer_model}, ensure_ascii=False) + "\n")
     for mode in modes:
         text = answers_file(mode, [r for r in rows if r["mode"] == mode], questions, when)
         stem.with_name(f"{stem.name}-{mode}-answers.md").write_text(text, encoding="utf-8")
-    return stem
+    return rows_path
 
 
 def main() -> None:
@@ -175,13 +179,13 @@ def main() -> None:
     parser.add_argument("--api", default="http://127.0.0.1:8000")
     args = parser.parse_args()
     if args.experiment == "retrieval":
-        stem = run_retrieval()
+        print(f"report: {run_retrieval()}.md")
     else:
         settings = get_settings()
         timeout = settings.question_budget_s + 30
-        stem = run_e2e([args.mode] if args.mode else ["traditional", "agentic"],
+        rows = run_e2e([args.mode] if args.mode else ["traditional", "agentic"],
                        lambda question, mode: ask(args.api, question, mode, timeout), settings)
-    print(f"report: {stem}.md")
+        print(f"rows: {rows}\nnext: python -m eval.judge {rows.relative_to(EVAL_DIR.parent).as_posix()}")
 
 
 if __name__ == "__main__":
