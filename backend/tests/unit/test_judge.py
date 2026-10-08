@@ -69,4 +69,5 @@ def test_report_has_one_column_per_configuration_and_the_triad() -> None:
     assert "| Context relevance, mean | 0.50 (n=1) | 0.50 (n=1) |" in md
     assert "| Faithfulness, mean | 1.00 (n=1) | 1.00 (n=1) |" in md
     assert "| Answer relevance, mean | 1.00 (n=1) | 1.00 (n=1) |" in md
+    assert "| Answers given | 1 | 1 |" in md and "| Judge calls invalid twice | 0 | 0 |" in md
     assert "CR 0.50 · F 1.00 · AR 1.00" in md

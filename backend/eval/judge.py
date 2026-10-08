@@ -64,7 +64,7 @@ ANSWER:
 
 
 class ContextRelevanceOutput(BaseModel):
-    relevant: list[bool]
+    relevant: list[bool] # true or false per chunk
 
 
 class Claim(BaseModel):
@@ -73,11 +73,12 @@ class Claim(BaseModel):
 
 
 class FaithfulnessOutput(BaseModel):
-    claims: list[Claim]
+    claims: list[Claim] # a list of claims, each mark supported or unsupported; empty if the judge found no claims
 
 
 class RelevanceOutput(BaseModel):
     addresses: Literal["yes", "partly", "no"]
+    # yes = it answers the question; partly = it answers only part of it or mostly talks about something else; no = it does not answer the question (a refusal or "not found" is "no")
 
 
 # --- scoring (pure) ---

@@ -11,8 +11,9 @@ Context relevance = share of the chunks given to the writer that help answer the
 | Context relevance, mean | 0.27 (n=30) | 0.22 (n=23) | 0.24 (n=30) | 0.38 (n=14) |
 | Faithfulness, mean | 0.93 (n=26) | 0.94 (n=23) | 1.00 (n=17) | 1.00 (n=14) |
 | Answer relevance, mean | 0.69 (n=26) | 0.61 (n=23) | 1.00 (n=17) | 0.86 (n=14) |
-
-Answers given / declined (not found, out of scope, timeout, error) / judge calls invalid twice: gemma4:e2b traditional: 26 / 4 / 0 · gemma4:e2b agentic: 23 / 7 / 0 · gemma4:31b-cloud traditional: 17 / 13 / 0 · gemma4:31b-cloud agentic: 14 / 16 / 0
+| Answers given | 26 | 23 | 17 | 14 |
+| Declined (not found, out of scope, timeout, error) | 4 | 7 | 13 | 16 |
+| Judge calls invalid twice | 0 | 0 | 0 | 0 |
 
 ## Table 2: Per question
 

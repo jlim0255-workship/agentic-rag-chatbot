@@ -178,12 +178,14 @@ def judge_report(rows: list[dict], questions: list[dict], header: list[str]) -> 
           "differences of 1-2 questions may be run-to-run noise. Scores come from an LLM judge and can be "
           "wrong in both directions; none of them checks the answer against the golden key facts.", "",
           "## Table 1: RAG triad", ""]
-    md += table(["", *configs], [[f"{name}, mean", *(mean([r[key] for r in sel[c]]) for c in configs)]
-                                 for key, name in TRIAD.items()])
-    md += ["", "Answers given / declined (not found, out of scope, timeout, error) / judge calls invalid twice: "
-           + " · ".join(f"{c}: {sum(r['status'] in ('answered', 'partial') for r in sel[c])} / "
-                        f"{sum(r['status'] not in ('answered', 'partial') for r in sel[c])} / "
-                        f"{sum(len(r['unjudged']) for r in sel[c])}" for c in configs)]
+    def given(rs: list[dict]) -> int:
+        return sum(r["status"] in ("answered", "partial") for r in rs)
+
+    md += table(["", *configs], [
+        *([f"{name}, mean", *(mean([r[key] for r in sel[c]]) for c in configs)] for key, name in TRIAD.items()),
+        ["Answers given", *(str(given(sel[c])) for c in configs)],
+        ["Declined (not found, out of scope, timeout, error)", *(str(len(sel[c]) - given(sel[c])) for c in configs)],
+        ["Judge calls invalid twice", *(str(sum(len(r["unjudged"]) for r in sel[c])) for c in configs)]])
 
     by = {(r["id"], r["config"]): r for r in rows}
     md += ["", "## Table 2: Per question", "",

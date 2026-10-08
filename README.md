@@ -101,33 +101,28 @@ step live; the answer then shows its label, timing, **Sources** (cited section t
 curl.exe -N -X POST http://localhost:8000/chat -H "Content-Type: application/json" -d '{\"question\": \"How quickly must an incident be reported?\", \"mode\": \"traditional\"}'
 ```
 
-**Staff-directory tool (demo, fictional data).** In agentic mode the agent can call `lookup_staff` (LangGraph
-`ToolNode`) on 10 fictional people; the contacts are appended under the answer by code. Load them once from
-`backend/` with `python -m app.db.seed_staff` (creates the `employee_demo` database; safe to re-run). Try:
-"Ransomware has encrypted our patient records. Who do I contact, and by when?"
-
 ## Evaluation
 
 Golden set: `backend/eval/golden.jsonl`, 30 questions (10 single-hop, 10 multi-hop, 5 not in the documents,
 5 ambiguous), each with the sections that answer it and the key facts a correct answer contains. From `backend/`:
 
 ```powershell
-python -m eval.run retrieval                      # semantic vs BM25 vs hybrid, no LLM (~1 min)
-python -m eval.run e2e [--mode agentic]           # traditional vs agentic through the running API (~25 min)
-python -m eval.run_cloud --model gemma4:31b-cloud # same, in-process, with another model
-python -m eval.judge eval/reports/<stem>-rows.jsonl [...] [--judge gpt-oss:120b-cloud]   # LLM-as-judge
+python -m eval.run_retrieval                         # Experiment A: semantic vs BM25 vs hybrid, no LLM (~1 min)
+python -m eval.run_e2e [--mode agentic]              # Experiment B: traditional vs agentic via the running API (~25 min)
+python -m eval.run_e2e --model gemma4:31b-cloud      #   same, in-process, with another model
+python -m eval.judge eval/reports/<stem>-rows.jsonl [...] [--judge gpt-oss:120b-cloud]   # LLM-as-judge report
 ```
 
-Reports go to `backend/eval/reports/`, timestamped (Markdown + CSV):
+Reports go to `backend/eval/reports/`, timestamped, as Markdown:
 
 - `*-retrieval.md`: FULL / PART / MISS (all / some / none of the needed sections found) per method, by category, best-match similarity.
-- `*-e2e*.md`: the same for traditional vs agentic, plus status, latency, LLM calls; `*-answers.md` lists every answer next to its key facts.
-- `*-rows.jsonl`: raw answers, input to `eval.judge`.
-- `*-judge-<model>.md`: judged correctness, faithfulness and relevance per model × mode, and why answers were wrong.
+- `*-e2e*-<mode>-answers.md`: every answer next to its key facts, for manual review. Alongside it, `*-e2e*-rows.jsonl` holds the saved answers (status, chunks given to the writer, citations, text): the input of `eval.judge`, not a report.
+- `*-judge-<model>.md`: the Experiment B report, the RAG triad per model × mode: context relevance (share of the chunks given to the writer that help answer the question), faithfulness (share of the answer's claims those chunks support) and answer relevance.
 
-Every rate is shown with its count, e.g. `7/10 (70%)`. Judge scores come from an LLM and can be wrong in both
-directions. `-cloud` models send questions and chunks to Ollama Cloud: evaluation only, the app stays offline.
-`eval.run e2e` tests whatever API is running, so rebuild it after code changes (`docker compose up -d --build backend`).
+Every rate is shown with its count, e.g. `7/10 (70%)`, and every mean with its n. Judge scores come from an LLM and
+can be wrong in both directions; they do not check answers against the golden key facts. `-cloud` models send
+questions and chunks to Ollama Cloud: evaluation only, the app stays offline.
+`eval.run_e2e` tests whatever API is running, so rebuild it after code changes (`docker compose up -d --build backend`).
 
 ## Tests
 
@@ -150,12 +145,12 @@ backend/
   app/
     api/         FastAPI: /chat (SSE), /chunks, /health
     config.py    settings from .env (all model names, URLs, limits)
-    db/          connection, schema, embedding-model record, staff demo seed
+    db/          connection, schema, embedding-model record
     ingest/      Markdown reader, chunker, database insert, embedding
     llm/         Ollama client, structured (JSON-schema) output with retry
     retrieval/   hybrid search: pgvector + BM25, fused with RRF
-    pipeline/    flow.py = map of both modes (start here); core.py = shared plumbing; tools.py = lookup_staff
-      nodes/     one file per step: planner, tool_agent, retrieve, grade, rewrite, not_found, generate
+    pipeline/    flow.py = map of both modes (start here); core.py = shared plumbing
+      nodes/     one file per step: planner, retrieve, grade, rewrite, not_found, generate
   eval/          golden set, runners, judge, reports/
   tests/         unit, api, pipeline (LLM faked), integration; fakes.py
 frontend/        Streamlit UI
