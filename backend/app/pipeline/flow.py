@@ -90,8 +90,6 @@ def traditional_graph(ctx: Ctx):
 
 def agentic_graph(ctx: Ctx):
     g = StateGraph(State)
-    # for name, node in [("planner", planner_node), ("retrieve", retrieve_node), ("grade", grade_node), ("rewrite", rewrite_node), ("not_found", not_found_node), ("generate", generate_node)]:
-    #     g.add_node(name, partial(node, ctx=ctx))
     g.add_node("planner", partial(planner_node, ctx=ctx))
     g.add_node("retrieve", partial(retrieve_node, ctx=ctx))
     g.add_node("grade", partial(grade_node, ctx=ctx))

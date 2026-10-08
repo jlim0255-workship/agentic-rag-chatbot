@@ -1,32 +1,49 @@
-"""Markdown reports for the evaluation runner. Pure functions: rows in, Markdown out.
+"""Markdown reports for the evaluation, plus the golden set and report paths shared by run_retrieval,
+run_e2e and judge. Report functions are pure: rows in, Markdown out. Every report is Markdown only.
 
 Verdicts (plain text, so tables can be pasted into slides):
   FULL  every needed section was among the chunks passed on      PART  some were      MISS  none were
-  OK / WRONG  for questions the documents cannot answer: declined (not found / out of scope) or not
 Every rate is shown with its count, e.g. "7/10 (70%)".
 """
 from __future__ import annotations
 
-import math
+import json
 import statistics
+from datetime import datetime
+from pathlib import Path
+
+EVAL_DIR = Path(__file__).parent
+GOLDEN = EVAL_DIR / "golden.jsonl"
+REPORTS = EVAL_DIR / "reports"
 
 DECLINED = ("not_found", "out_of_scope")  # statuses where no answer from the documents was given
 CATEGORIES = ["single_hop", "multi_hop", "not_in_corpus", "ambiguous"]
 VERDICT = {"full": "FULL", "partial": "PART", "miss": "MISS"}
-LEGEND = ("FULL = every needed section found · PART = some · MISS = none · #n = rank of the first needed "
-          "section · OK / WRONG = a question the documents cannot answer was declined / was answered")
+LEGEND = "FULL = every needed section found · PART = some · MISS = none · #n = rank of the first needed section"
+
+
+# --- golden set and files ---
+
+def load_golden() -> list[dict]:
+    return [json.loads(line) for line in GOLDEN.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def stem(name: str) -> Path:
+    """reports/<timestamp>-<name>, the prefix every file of one run shares."""
+    REPORTS.mkdir(exist_ok=True)
+    return REPORTS / f"{datetime.now():%Y%m%d-%H%M}-{name}"
+
+
+def write_md(name: str, markdown: str) -> Path:
+    path = stem(name).with_suffix(".md")
+    path.write_text(markdown, encoding="utf-8")
+    return path
 
 
 # --- small helpers ---
 
 def rate(hits: int, n: int) -> str:
     return f"{hits}/{n} ({hits / n:.0%})" if n else "n/a (0 questions)"
-
-
-def percentile(values: list[float], p: float) -> float:
-    """Nearest-rank percentile, p in (0, 1]."""
-    ordered = sorted(values)
-    return ordered[max(0, math.ceil(p * len(ordered)) - 1)] if ordered else float("nan")
 
 
 def section_label(e: dict) -> str:
@@ -114,15 +131,6 @@ STATUS = {"answered": "answered", "partial": "partial answer", "not_found": "sai
           "out_of_scope": "refused: out of scope", "timeout": "timeout", "error": "error"}
 
 
-def answer_cell(r: dict) -> str:
-    """Per-question result for one mode: evidence given to the writer, final status."""
-    status = STATUS.get(r["status"], r["status"])
-    if r["category"] == "not_in_corpus":
-        return f"{'OK' if r['status'] in DECLINED else 'WRONG'} · {status}"
-    evidence = cell(r["outcome"]) if r["outcome"] else "–"
-    return f"{evidence} · {status}"
-
-
 def answers_file(mode: str, rows: list[dict], questions: list[dict], when: str) -> str:
     by = {r["id"]: r for r in rows}
     md = [f"# Answers: {mode} mode ({when})", "",
@@ -130,15 +138,15 @@ def answers_file(mode: str, rows: list[dict], questions: list[dict], when: str) 
     for q in questions:
         r = by[q["id"]]
         md += [f"## {q['id']} ({q['category']}): {q['question']}", "",
-               f"**Result:** {answer_cell(r)} · **Label:** {r['label'] or '–'}", "",
+               f"**Status:** {STATUS.get(r['status'], r['status'])}", "",
                f"**Given to the writer:** {r['passed'] or 'none'} · **Cited:** {r['citations'] or 'none'}", "",
                r["answer"] or "_(no answer)_", "", "**Key facts expected:**", *[f"- {n}" for n in q["answer_notes"]], ""]
     return "\n".join(md)
 
 
-# --- Experiment B judged: LLM-as-judge scores per configuration (model x mode) ---
+# --- Experiment B judged: the RAG triad per configuration (model x mode) ---
 
-ATTRIBUTION = ["Success", "Correct but not grounded", "Hallucination", "Writer missed facts it had", "Retrieval failure"]
+TRIAD = {"context_relevance": "Context relevance", "faithfulness": "Faithfulness", "relevance": "Answer relevance"}
 
 
 def mean(values: list[float | None]) -> str:
@@ -147,79 +155,39 @@ def mean(values: list[float | None]) -> str:
 
 
 def judged_cell(r: dict) -> str:
-    """Per-question scores: C = correctness, F = faithfulness, R = relevance."""
+    """Per-question scores: CR = context relevance, F = faithfulness, AR = answer relevance."""
     def num(v: float | None) -> str:
         return "–" if v is None else f"{v:.2f}"
-    if r["faithfulness"] is None and r["relevance"] is None and not r["unjudged"]:
-        return f"C {num(r['correctness'])} · {STATUS.get(r['status'], r['status'])}"
-    return f"C {num(r['correctness'])} · F {num(r['faithfulness'])} · R {num(r['relevance'])}"
+    cr = f"CR {num(r['context_relevance'])}"
+    if r["status"] not in ("answered", "partial"):
+        return f"{cr} · {STATUS.get(r['status'], r['status'])}"
+    return f"{cr} · F {num(r['faithfulness'])} · AR {num(r['relevance'])}"
 
 
-def judge_report(rows: list[dict], questions: list[dict], header: list[str], correct_at: float) -> str:
+def judge_report(rows: list[dict], questions: list[dict], header: list[str]) -> str:
     """rows: judged rows (eval.judge) with `config` = "<model> <mode>"; one per question and config."""
     configs = list(dict.fromkeys(r["config"] for r in rows))
     sel = {c: [r for r in rows if r["config"] == c] for c in configs}
 
-    def correct(rs: list[dict]) -> str:
-        return rate(sum((r["correctness"] or 0) >= correct_at for r in rs), len(rs))
-
-    def headline(rs: list[dict]) -> dict[str, str]:
-        """Judged scores first, then the measured ones (computed by code in eval.run, no judge)."""
-        answered = [r for r in rs if r["faithfulness"] is not None]
-        graded = [r for r in rs if r["outcome"]]  # questions with known answer sections
-        off = [r for r in rs if r["category"] == "not_in_corpus"]
-        answerable = [r for r in rs if r["category"] in ("single_hop", "multi_hop")]
-        lat = [r["latency_ms"] / 1000 for r in rs if r["latency_ms"] is not None]
-
-        def full(sel: list[dict]) -> str:
-            return rate(sum(r["outcome"]["level"] == "full" for r in sel), len(sel))
-
-        return {
-            "Correct (score >= %.2f), all questions" % correct_at: correct(rs),
-            "Correctness, mean": mean([r["correctness"] for r in rs]),
-            "Faithfulness, mean (answers with claims)": mean([r["faithfulness"] for r in rs]),
-            "Fully faithful answers": rate(sum(r["faithfulness"] == 1.0 for r in answered), len(answered)),
-            "Answer relevance, mean (answers given)": mean([r["relevance"] for r in rs]),
-            "Answers contradicting a key fact": str(sum("contradicted" in (r["verdicts"] or []) for r in rs)),
-            "Right sections given to the writer (FULL)": full(graded),
-            "Multi-hop questions: FULL": full([r for r in graded if r["category"] == "multi_hop"]),
-            "Not-in-docs questions declined (OK)": rate(sum(r["correctness"] == 1.0 for r in off), len(off)),
-            "Answerable questions wrongly declined":
-                rate(sum(r["status"] in DECLINED for r in answerable), len(answerable)),
-            "Citations pointing at a needed section":
-                rate(sum(r["cited_expected"] for r in graded), sum(r["cited"] for r in graded)),
-            "Latency p50 / p95": f"{percentile(lat, .5):.1f} s / {percentile(lat, .95):.1f} s",
-            "LLM calls per question (mean)": f"{sum(r['llm_calls'] or 0 for r in rs) / len(rs):.1f}",
-            "Timeouts / errors":
-                f"{sum(r['status'] == 'timeout' for r in rs)} / {sum(r['status'] == 'error' for r in rs)}",
-            "Judge calls invalid twice (unjudged)": str(sum(len(r["unjudged"]) for r in rs)),
-        }
-
-    heads = {c: headline(sel[c]) for c in configs}
     md = [*header, "",
-          f"Correctness = share of the golden key facts the answer covers (partly = half), judged against "
-          f"`answer_notes`; a not-in-docs question scores 1 if declined, 0 if answered. Faithfulness = share of "
-          f"the answer's claims supported by the chunks given to the writer. Relevance = does it address the "
-          f"question (yes 1, partly 0.5, no 0). One run per configuration: differences of 1-2 questions may be "
-          f"run-to-run noise. Scores come from an LLM judge and can be wrong in both directions.", "",
-          "## Table 1: Headline", ""]
-    md += table(["", *configs], [[name, *(heads[c][name] for c in configs)] for name in heads[configs[0]]])
-
-    cats = [c for c in CATEGORIES if count(questions, c)]
-    md += ["", "## Table 2: Correct by category", ""]
-    md += table(["Category", *configs], [[f"{cat} ({count(questions, cat)})",
-                                          *(correct([r for r in sel[c] if r["category"] == cat]) for c in configs)]
-                                         for cat in cats])
-
-    md += ["", "## Table 3: Why answers were wrong (questions with known answer sections)", "",
-           f"Correct = score >= {correct_at:.2f}; faithful = every claim supported (or no claims). "
-           "Order of checks: correct? then faithful? then were all needed sections given to the writer?", ""]
-    att = {c: [r["attribution"] for r in sel[c] if r["attribution"]] for c in configs}
-    md += table(["Diagnosis", *configs], [[a, *(rate(att[c].count(a), len(att[c])) for c in configs)]
-                                          for a in ATTRIBUTION])
+          "Context relevance = share of the chunks given to the writer that help answer the question (judged "
+          "whenever the writer got chunks, even if it then declined; agentic mode gives the writer up to "
+          "10 chunks, traditional 5). Faithfulness = share of the answer's claims supported by those chunks. "
+          "Answer relevance = does the answer address the question (yes 1, partly 0.5, no 0). Faithfulness "
+          "and answer relevance are judged only on answers given. n = rows scored. One run per configuration: "
+          "differences of 1-2 questions may be run-to-run noise. Scores come from an LLM judge and can be "
+          "wrong in both directions; none of them checks the answer against the golden key facts.", "",
+          "## Table 1: RAG triad", ""]
+    md += table(["", *configs], [[f"{name}, mean", *(mean([r[key] for r in sel[c]]) for c in configs)]
+                                 for key, name in TRIAD.items()])
+    md += ["", "Answers given / declined (not found, out of scope, timeout, error) / judge calls invalid twice: "
+           + " · ".join(f"{c}: {sum(r['status'] in ('answered', 'partial') for r in sel[c])} / "
+                        f"{sum(r['status'] not in ('answered', 'partial') for r in sel[c])} / "
+                        f"{sum(len(r['unjudged']) for r in sel[c])}" for c in configs)]
 
     by = {(r["id"], r["config"]): r for r in rows}
-    md += ["", "## Table 4: Per question", "", "C = correctness · F = faithfulness · R = relevance · – = not judged", ""]
+    md += ["", "## Table 2: Per question", "",
+           "CR = context relevance · F = faithfulness · AR = answer relevance · – = not judged", ""]
     md += table(["ID", "Question", *configs],
                 [[q["id"], short(q["question"], 40), *(judged_cell(by[(q["id"], c)]) if (q["id"], c) in by else "–"
                                                       for c in configs)] for q in questions])

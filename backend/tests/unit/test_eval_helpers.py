@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from eval.report import outcome
-from eval.run import collect, load_golden, parse_sse
+from eval.report import load_golden, outcome
+from eval.run_e2e import collect, parse_sse
 
 EXPECTED = [("ACT854 s23", {"act854:s23:1"}), ("PUA220 reg 2", {"pua220:r2:1"}), ("ACT854 s4", {"act854:s4:1", "act854:s4:2"})]
 
@@ -22,12 +22,11 @@ def test_parse_sse() -> None:
 
 def test_collect_picks_report_fields() -> None:
     events = [("trace", {"node": "generate", "status": "start", "data": {"chunks": ["a", "b"]}}),
-              ("answer", {"text": "Within 6 hours.", "label": "Passed automated source check"}),
+              ("answer", {"text": "Within 6 hours.", "label": "Not checked"}),
               ("citations", [{"chunk_id": "a"}]), ("metrics", {"latency_ms": 5, "llm_calls": 1}),
               ("done", {"status": "answered"})]
     res = collect(events)
-    assert res["passed"] == ["a", "b"] and res["citations"] == ["a"]
-    assert (res["answer"], res["status"], res["metrics"]["llm_calls"]) == ("Within 6 hours.", "answered", 1)
+    assert res == {"status": "answered", "answer": "Within 6 hours.", "citations": ["a"], "passed": ["a", "b"]}
     # An error before `done` leaves status "error" (in-process runner turns exceptions into this event).
     assert collect([("error", {"message": "rate limited"})])["status"] == "error"
 
