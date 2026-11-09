@@ -124,6 +124,15 @@ can be wrong in both directions; they do not check answers against the golden ke
 questions and chunks to Ollama Cloud: evaluation only, the app stays offline.
 `eval.run_e2e` tests whatever API is running, so rebuild it after code changes (`docker compose up -d --build backend`).
 
+### Retrieval & Generation results
+
+Retrieval
+<img width="707" height="362" alt="image" src="https://github.com/user-attachments/assets/df3f3b98-c21e-4b13-a591-28c906884e7c" />
+
+Generation
+<img width="711" height="381" alt="image" src="https://github.com/user-attachments/assets/abe546a7-e3fc-4049-abf3-f812643b5938" />
+
+
 ## Tests
 
 ```powershell
