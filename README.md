@@ -5,6 +5,8 @@ Answers questions about Malaysia's Cyber Security Act 2024 and two of its regula
 Two modes: **traditional** (retrieve once, answer) and **agentic** (route, plan sub-questions, grade the
 sources, rewrite the search and retry, or answer "not found"). Answers are informational, not legal advice.
 
+Check [here](https://canva.link/a2dorgiwc9z3xbs) for link to full slide deck.
+
 | Piece | Runs where | What it does |
 |---|---|---|
 | Postgres + pgvector | Docker (`db`) | Documents, chunks, embeddings |
@@ -131,7 +133,6 @@ Retrieval
 
 Generation
 <img width="711" height="381" alt="image" src="https://github.com/user-attachments/assets/abe546a7-e3fc-4049-abf3-f812643b5938" />
-
 
 ## Tests
 
